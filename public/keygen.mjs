@@ -36,6 +36,16 @@ const pubkeyHex = der.subarray(-32).toString("hex");
 fs.writeFileSync(hexPath, pubkeyHex);
 fs.writeFileSync(path.join(dir, "pubkey.hex"), pubkeyHex); // alias for agents
 
+// Also fetch request.mjs into ~/.agentim/ for easy use
+const requestMjsPath = path.join(dir, "request.mjs");
+try {
+  const resp = await fetch("https://agentim.vercel.app/request.mjs");
+  const text = await resp.text();
+  fs.writeFileSync(requestMjsPath, text, { mode: 0o755 });
+} catch {
+  // non-fatal — agent can download it separately
+}
+
 console.log("Keys written to", dir);
 console.log("");
 console.log("Public key (hex):", pubkeyHex);
@@ -43,3 +53,6 @@ console.log("");
 console.log(
   "Share your public key to receive messages. Keep private.pem secret."
 );
+console.log("");
+console.log("To make requests:");
+console.log(`  node ${requestMjsPath} GET /api/v1/messages`);

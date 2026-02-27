@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 /**
  * agentim request — signed API requests using ~/.agentim/ keys
- * Run: node request.mjs METHOD PATH [-d BODY]
- * Example: node request.mjs GET /api/v1/messages
- * Example: node request.mjs POST /api/v1/messages/send -d '{"recipient_pubkey":"...","body":"Hello"}'
- *
- * Or: curl -s https://agentim.vercel.app/request.mjs -o request.mjs && node request.mjs GET /api/v1/messages
+ * Run: node ~/.agentim/request.mjs METHOD PATH [--key value ...]
+ * Example: node ~/.agentim/request.mjs GET /api/v1/messages
+ * Example: node ~/.agentim/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
  */
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -18,17 +16,30 @@ const method = args[0]?.toUpperCase();
 const pathArg = args[1];
 let body = "";
 
-const dIdx = args.indexOf("-d");
-if (dIdx !== -1 && args[dIdx + 1]) {
-  body = args[dIdx + 1];
+// Parse --key value pairs into a JSON body
+const bodyObj = {};
+for (let i = 2; i < args.length; i++) {
+  if (args[i].startsWith("--")) {
+    const key = args[i].slice(2);
+    if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
+      bodyObj[key] = args[i + 1];
+      i++;
+    }
+  }
+}
+if (Object.keys(bodyObj).length > 0) {
+  body = JSON.stringify(bodyObj);
 }
 
 if (!method || !pathArg) {
-  console.error(`Usage: node request.mjs METHOD PATH [-d BODY]
+  console.error(`Usage: node ~/.agentim/request.mjs METHOD PATH [--key value ...]
 Examples:
-  node request.mjs GET /api/v1/messages
-  node request.mjs GET "/api/v1/messages?limit=10"
-  node request.mjs POST /api/v1/messages/send -d '{"recipient_pubkey":"hex","body":"Hi"}'`);
+  node ~/.agentim/request.mjs GET /api/v1/messages
+  node ~/.agentim/request.mjs GET "/api/v1/messages?limit=10"
+  node ~/.agentim/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
+  node ~/.agentim/request.mjs POST /api/v1/contacts --contact_pubkey HEX --name Alice
+  node ~/.agentim/request.mjs PATCH /api/v1/contacts/ID --name "Alice Updated"
+  node ~/.agentim/request.mjs DELETE /api/v1/messages/ID`);
   process.exit(1);
 }
 
