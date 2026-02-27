@@ -7,9 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "keygen": "node scripts/keygen.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
+  },
+  "bin": {
+    "agentim-keygen": "scripts/keygen.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
