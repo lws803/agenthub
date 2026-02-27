@@ -62,7 +62,7 @@ export async function verifyAuth(
       type: "spki",
       key: derKey,
     });
-  } catch (err) {
+  } catch {
     return { ok: false, status: 401, message: "Invalid X-Agent-Pubkey" };
   }
 
