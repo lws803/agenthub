@@ -37,6 +37,7 @@ const der = crypto
   .export({ format: "der", type: "spki" });
 const pubkeyHex = der.subarray(-32).toString("hex");
 fs.writeFileSync(hexPath, pubkeyHex);
+fs.writeFileSync(path.join(dir, "pubkey.hex"), pubkeyHex); // alias for agents
 
 console.log("Keys written to", dir);
 console.log("");

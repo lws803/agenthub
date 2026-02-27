@@ -8,12 +8,14 @@
     "start": "next start",
     "lint": "eslint",
     "keygen": "node scripts/keygen.mjs",
+    "request": "node public/request.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
   },
   "bin": {
-    "agentim-keygen": "scripts/keygen.mjs"
+    "agentim-keygen": "scripts/keygen.mjs",
+    "agentim-request": "public/request.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
