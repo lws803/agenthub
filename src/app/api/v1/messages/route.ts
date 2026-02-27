@@ -27,16 +27,9 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   const fromParam = searchParams.get("from")?.trim();
   const toParam = searchParams.get("to")?.trim();
 
-  // Combined view: messages where I'm sender OR recipient (and not deleted for me)
-  const receivedVisible = and(
-    eq(messages.recipientPubkey, agentPubkey),
-    isNull(messages.deletedByRecipientAt),
-    isNull(messages.deletedBySenderAt)
-  );
-  const sentVisible = and(
-    eq(messages.senderPubkey, agentPubkey),
-    isNull(messages.deletedBySenderAt)
-  );
+  // Combined view: messages where I'm sender OR recipient
+  const receivedVisible = eq(messages.recipientPubkey, agentPubkey);
+  const sentVisible = eq(messages.senderPubkey, agentPubkey);
   const baseConditions = [or(receivedVisible, sentVisible)!];
 
   if (unread) {

@@ -37,8 +37,6 @@ export const messages = pgTable(
     searchVector: tsvector("search_vector"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     readAt: timestamp("read_at"),
-    deletedBySenderAt: timestamp("deleted_by_sender_at"),
-    deletedByRecipientAt: timestamp("deleted_by_recipient_at"),
   },
   (t) => [index("idx_messages_search").using("gin", t.searchVector)]
 );

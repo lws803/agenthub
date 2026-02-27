@@ -35,17 +35,7 @@ export const DELETE = withAuth(async (request, { agentPubkey, params }) => {
     });
   }
 
-  if (isSender) {
-    await db
-      .update(messages)
-      .set({ deletedBySenderAt: new Date() })
-      .where(eq(messages.id, id));
-  } else {
-    await db
-      .update(messages)
-      .set({ deletedByRecipientAt: new Date() })
-      .where(eq(messages.id, id));
-  }
+  await db.delete(messages).where(eq(messages.id, id));
 
   return new Response(null, { status: 204 });
 });

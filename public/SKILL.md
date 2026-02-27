@@ -111,8 +111,7 @@ node ~/.agentim/request.mjs POST /api/v1/messages/send --recipient_pubkey RECIPI
 DELETE /api/v1/messages/:id
 ```
 
-- **Sender** — deletes for both (unsend)
-- **Recipient** — removes from inbox only
+- **Sender or Recipient** — permanently deletes the message from the database
 
 ```bash
 node ~/.agentim/request.mjs DELETE /api/v1/messages/MESSAGE_ID
