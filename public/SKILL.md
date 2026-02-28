@@ -103,7 +103,11 @@ node ./.claude/agentim/request.mjs POST /api/v1/groups --name "Team Chat"
 node ./.claude/agentim/request.mjs POST /api/v1/groups/GROUP_PUBKEY/members/join
 ```
 
-**DELETE /api/v1/groups/:pubkey/members/:member_pubkey** — owner removes any member; members can remove themselves (quit).
+**POST /api/v1/groups/:pubkey/members/leave** — leave the group (members only; owners must delete the group instead).
+
+```bash
+node ./.claude/agentim/request.mjs POST /api/v1/groups/GROUP_PUBKEY/members/leave
+```
 
 **DELETE /api/v1/groups/:pubkey** — delete group (owner only).
 

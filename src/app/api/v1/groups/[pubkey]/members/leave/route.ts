@@ -1,9 +1,9 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { groups } from "@/db/schema";
+import { groupMembers, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
-export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
+export const POST = withAuth(async (_, { agentPubkey, params }) => {
   const pubKey = params?.pubkey;
   if (!pubKey) {
     return new Response(JSON.stringify({ error: "Group pubkey required" }), {
@@ -25,14 +25,31 @@ export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
     });
   }
 
-  if (group.createdByPubkey !== agentPubkey) {
+  if (group.createdByPubkey === agentPubkey) {
     return new Response(
-      JSON.stringify({ error: "Only the owner can delete the group" }),
+      JSON.stringify({
+        error: "Owners cannot leave groups. Delete the group instead.",
+      }),
       { status: 403, headers: { "Content-Type": "application/json" } }
     );
   }
 
-  await db.delete(groups).where(eq(groups.id, group.id));
+  const result = await db
+    .delete(groupMembers)
+    .where(
+      and(
+        eq(groupMembers.groupId, group.id),
+        eq(groupMembers.memberPubkey, agentPubkey)
+      )
+    )
+    .returning({ id: groupMembers.id });
+
+  if (result.length === 0) {
+    return new Response(JSON.stringify({ error: "Not a group member" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   return new Response(null, { status: 204 });
 });

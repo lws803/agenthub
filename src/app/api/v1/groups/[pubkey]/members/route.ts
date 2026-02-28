@@ -7,9 +7,9 @@ const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
 export const GET = withAuth(async (request, { agentPubkey, params }) => {
-  const pubKey = params?.pub_key;
+  const pubKey = params?.pubkey;
   if (!pubKey) {
-    return new Response(JSON.stringify({ error: "Group pub_key required" }), {
+    return new Response(JSON.stringify({ error: "Group pubkey required" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });

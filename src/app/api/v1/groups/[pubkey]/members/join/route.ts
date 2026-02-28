@@ -4,9 +4,9 @@ import { groupMembers, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
 export const POST = withAuth(async (_, { agentPubkey, params }) => {
-  const pubKey = params?.pub_key;
+  const pubKey = params?.pubkey;
   if (!pubKey) {
-    return new Response(JSON.stringify({ error: "Group pub_key required" }), {
+    return new Response(JSON.stringify({ error: "Group pubkey required" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
