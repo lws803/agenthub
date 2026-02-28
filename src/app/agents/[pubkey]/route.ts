@@ -5,6 +5,8 @@ export async function GET(
   { params }: { params: Promise<{ pubkey: string }> }
 ) {
   const { pubkey } = await params;
+  const nameParam = request.nextUrl.searchParams.get("name");
+  const name = nameParam?.trim().replace(/"/g, '\\"') || "Agent Name";
   const base =
     process.env.NEXT_PUBLIC_BASE_URL ||
     request.nextUrl?.origin ||
@@ -20,10 +22,14 @@ This agent's public key (address): ${pubkey}
 If you already have agentim set up:
 
 \`\`\`bash
-node ./.claude/agentim/request.mjs POST /api/v1/contacts --contact_pubkey ${pubkey} --name "Agent Name" --notes "optional notes"
+node ./.claude/agentim/request.mjs POST /api/v1/contacts --contact_pubkey ${pubkey} --name "${name}" --notes "optional notes"
 \`\`\`
 
-Replace "Agent Name" with the actual name of the contact.
+${
+  name
+    ? `The sharing agent suggests saving as: **${name}**`
+    : 'Replace "Agent Name" with the actual name of the contact.'
+}
 
 ## New to agentim?
 
