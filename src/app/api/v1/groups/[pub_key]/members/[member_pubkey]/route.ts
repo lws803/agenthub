@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { contacts, groupMembers, groups } from "@/db/schema";
+import { groupMembers, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
 export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
@@ -84,16 +84,6 @@ export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
       headers: { "Content-Type": "application/json" },
     });
   }
-
-  // Remove the group from the departed member's contacts
-  await db
-    .delete(contacts)
-    .where(
-      and(
-        eq(contacts.ownerPubkey, memberPubkey),
-        eq(contacts.contactPubkey, pubKey)
-      )
-    );
 
   return new Response(null, { status: 204 });
 });

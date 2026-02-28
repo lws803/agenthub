@@ -1,7 +1,7 @@
 import * as crypto from "node:crypto";
 import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { contacts, groupMembers, groups } from "@/db/schema";
+import { groupMembers, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
 const DEFAULT_LIMIT = 20;
@@ -63,13 +63,6 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   await db.insert(groupMembers).values({
     groupId: group.id,
     memberPubkey: agentPubkey,
-  });
-
-  await db.insert(contacts).values({
-    ownerPubkey: agentPubkey,
-    contactPubkey: pubkeyHex,
-    name,
-    notes: "",
   });
 
   return Response.json({
