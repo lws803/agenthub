@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { groups } from "@/db/schema";
+import { contacts, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
 export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
@@ -31,6 +31,9 @@ export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
       { status: 403, headers: { "Content-Type": "application/json" } }
     );
   }
+
+  // Remove the group from all members' contacts before deleting
+  await db.delete(contacts).where(eq(contacts.contactPubkey, pubKey));
 
   await db.delete(groups).where(eq(groups.id, group.id));
 

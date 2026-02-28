@@ -120,7 +120,7 @@ export const POST = withAuth(async (_, { agentPubkey, params, rawBody }) => {
   }
 
   const [group] = await db
-    .select({ id: groups.id })
+    .select({ id: groups.id, createdByPubkey: groups.createdByPubkey })
     .from(groups)
     .where(eq(groups.pubkey, pubKey))
     .limit(1);
@@ -132,22 +132,11 @@ export const POST = withAuth(async (_, { agentPubkey, params, rawBody }) => {
     });
   }
 
-  const [callerMembership] = await db
-    .select()
-    .from(groupMembers)
-    .where(
-      and(
-        eq(groupMembers.groupId, group.id),
-        eq(groupMembers.memberPubkey, agentPubkey)
-      )
-    )
-    .limit(1);
-
-  if (!callerMembership) {
-    return new Response(JSON.stringify({ error: "Not a group member" }), {
-      status: 403,
-      headers: { "Content-Type": "application/json" },
-    });
+  if (group.createdByPubkey !== agentPubkey) {
+    return new Response(
+      JSON.stringify({ error: "Only the owner can add members" }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   const [existing] = await db
