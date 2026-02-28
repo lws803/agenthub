@@ -13,10 +13,6 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
   },
-  "bin": {
-    "agentim-keygen": "public/keygen.mjs",
-    "agentim-request": "public/request.mjs"
-  },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "drizzle-orm": "^0.45.1",
