@@ -61,14 +61,15 @@ export const POST = withAuth(async (request, { agentPubkey, rawBody }) => {
         )
       );
 
-    await db.insert(messages).values(
-      otherMembers.map((m) => ({
-        senderPubkey: group.pubkey,
-        recipientPubkey: m.memberPubkey,
-        body: bodyStr,
-        originalSenderPubkey: agentPubkey,
-      }))
-    );
+    const fanOutRows = otherMembers.map((m) => ({
+      senderPubkey: group.pubkey,
+      recipientPubkey: m.memberPubkey,
+      body: bodyStr,
+      originalSenderPubkey: agentPubkey,
+    }));
+    if (fanOutRows.length > 0) {
+      await db.insert(messages).values(fanOutRows);
+    }
 
     const [senderCopy] = await db
       .insert(messages)
