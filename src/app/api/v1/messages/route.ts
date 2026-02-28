@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { contacts, messages } from "@/db/schema";
+import { contacts, groups, messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
 const DEFAULT_LIMIT = 20;
@@ -94,27 +94,27 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
 
   const toMessageJson = (
     r: MessageRow,
-    nameByPubkey: Record<string, string>
-  ) => ({
-    id: r.id,
-    sender_pubkey: r.senderPubkey,
-    ...(nameByPubkey[r.senderPubkey] != null && {
-      sender_name: nameByPubkey[r.senderPubkey],
-    }),
-    recipient_pubkey: r.recipientPubkey,
-    ...(nameByPubkey[r.recipientPubkey] != null && {
+    nameByPubkey: Record<string, string>,
+    groupNameByPubkey: Record<string, string>
+  ) => {
+    // For group messages, originalSenderPubkey holds the real sender
+    // and senderPubkey is the group's pubkey.
+    const isGroup = r.originalSenderPubkey != null;
+    const senderPubkey = isGroup ? r.originalSenderPubkey! : r.senderPubkey;
+
+    return {
+      id: r.id,
+      sender_pubkey: senderPubkey,
+      sender_name: nameByPubkey[senderPubkey],
+      recipient_pubkey: r.recipientPubkey,
       recipient_name: nameByPubkey[r.recipientPubkey],
-    }),
-    body: r.body,
-    ...(r.originalSenderPubkey != null && {
-      original_sender_pubkey: r.originalSenderPubkey,
-      ...(nameByPubkey[r.originalSenderPubkey] != null && {
-        original_sender_name: nameByPubkey[r.originalSenderPubkey],
-      }),
-    }),
-    created_at: r.createdAt,
-    read_at: r.readAt,
-  });
+      body: r.body,
+      group_pubkey: isGroup ? r.senderPubkey : undefined,
+      group_name: isGroup ? groupNameByPubkey[r.senderPubkey] : undefined,
+      created_at: r.createdAt,
+      read_at: r.readAt,
+    };
+  };
 
   const orderBy = q
     ? desc(
@@ -162,6 +162,25 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     }
   }
 
+  // When originalSenderPubkey exists, senderPubkey is the group; fetch group names
+  const groupPubkeys = [
+    ...new Set(
+      rows
+        .filter((r) => r.originalSenderPubkey != null)
+        .map((r) => r.senderPubkey)
+    ),
+  ];
+  const groupNameByPubkey: Record<string, string> = {};
+  if (groupPubkeys.length > 0) {
+    const groupRows = await db
+      .select({ pubkey: groups.pubkey, name: groups.name })
+      .from(groups)
+      .where(inArray(groups.pubkey, groupPubkeys));
+    for (const g of groupRows) {
+      groupNameByPubkey[g.pubkey] = g.name;
+    }
+  }
+
   const idsToMarkRead = rows
     .filter((r) => r.recipientPubkey === agentPubkey && r.readAt === null)
     .map((r) => r.id);
@@ -173,7 +192,9 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   }
 
   return Response.json({
-    messages: rows.map((r) => toMessageJson(r, nameByPubkey)),
+    messages: rows.map((r) =>
+      toMessageJson(r, nameByPubkey, groupNameByPubkey)
+    ),
     total,
     limit,
     offset,
