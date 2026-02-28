@@ -64,7 +64,13 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     }
   }
 
-  const whereClause = and(...baseConditions);
+  const searchCondition = q
+    ? sql`${messages.searchVector} @@ websearch_to_tsquery('english', ${q})`
+    : undefined;
+  const whereClause = and(
+    ...baseConditions,
+    ...(searchCondition ? [searchCondition] : [])
+  );
 
   const selectFields = {
     id: messages.id,
@@ -98,52 +104,17 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     read_at: r.readAt,
   });
 
-  if (q) {
-    const searchCondition = sql`${messages.searchVector} @@ websearch_to_tsquery('english', ${q})`;
-
-    const query = db
-      .select(selectFields)
-      .from(messages)
-      .where(and(whereClause!, searchCondition))
-      .orderBy(
-        desc(
-          sql`ts_rank(${messages.searchVector}, websearch_to_tsquery('english', ${q}))`
-        )
+  const orderBy = q
+    ? desc(
+        sql`ts_rank(${messages.searchVector}, websearch_to_tsquery('english', ${q}))`
       )
-      .limit(limit)
-      .offset(offset);
-
-    const countResult = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(messages)
-      .where(and(whereClause!, searchCondition));
-
-    const rows = await query;
-    const total = countResult[0]?.count ?? 0;
-
-    const idsToMarkRead = rows
-      .filter((r) => r.recipientPubkey === agentPubkey && r.readAt === null)
-      .map((r) => r.id);
-    if (idsToMarkRead.length > 0) {
-      await db
-        .update(messages)
-        .set({ readAt: new Date() })
-        .where(inArray(messages.id, idsToMarkRead));
-    }
-
-    return Response.json({
-      messages: rows.map(toMessageJson),
-      total,
-      limit,
-      offset,
-    });
-  }
+    : desc(messages.createdAt);
 
   const rows = await db
     .select(selectFields)
     .from(messages)
     .where(whereClause)
-    .orderBy(desc(messages.createdAt))
+    .orderBy(orderBy)
     .limit(limit)
     .offset(offset);
 

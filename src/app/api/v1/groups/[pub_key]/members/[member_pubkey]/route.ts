@@ -30,6 +30,15 @@ export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
   const isOwner = group.createdByPubkey === agentPubkey;
   const isRemovingSelf = agentPubkey === memberPubkey;
 
+  if (isRemovingSelf && isOwner) {
+    return new Response(
+      JSON.stringify({
+        error: "Owners cannot leave groups. Delete the group instead.",
+      }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   if (isRemovingSelf) {
     // Members can quit (remove themselves)
   } else if (isOwner) {
