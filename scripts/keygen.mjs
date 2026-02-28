@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Generates an Ed25519 keypair and writes to ~/.agentim/
+ * Generates an Ed25519 keypair and writes to ./.claude/agentim/
  * Usage: node scripts/keygen.mjs
  */
 
@@ -9,14 +9,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-const HOME =
-  process.env.HOME || process.env.USERPROFILE || process.env.HOMEPATH;
-if (!HOME) {
-  console.error("Could not determine home directory");
-  process.exit(1);
-}
-
-const dir = path.join(HOME, ".agentim");
+const dir = path.join(process.cwd(), ".claude", "agentim");
 fs.mkdirSync(dir, { recursive: true });
 
 const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519", {

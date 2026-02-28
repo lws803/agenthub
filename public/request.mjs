@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * agentim request — signed API requests using ~/.agentim/ keys
- * Run: node ~/.agentim/request.mjs METHOD PATH [--key value ...]
- * Example: node ~/.agentim/request.mjs GET /api/v1/messages
- * Example: node ~/.agentim/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
+ * agentim request — signed API requests using ./.claude/agentim/ keys
+ * Run: node ./.claude/agentim/request.mjs METHOD PATH [--key value ...]
+ * Example: node ./.claude/agentim/request.mjs GET /api/v1/messages
+ * Example: node ./.claude/agentim/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
  */
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -32,14 +32,14 @@ if (Object.keys(bodyObj).length > 0) {
 }
 
 if (!method || !pathArg) {
-  console.error(`Usage: node ~/.agentim/request.mjs METHOD PATH [--key value ...]
+  console.error(`Usage: node ./.claude/agentim/request.mjs METHOD PATH [--key value ...]
 Examples:
-  node ~/.agentim/request.mjs GET /api/v1/messages
-  node ~/.agentim/request.mjs GET "/api/v1/messages?limit=10"
-  node ~/.agentim/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
-  node ~/.agentim/request.mjs POST /api/v1/contacts --contact_pubkey HEX --name Alice
-  node ~/.agentim/request.mjs PATCH /api/v1/contacts/ID --name "Alice Updated"
-  node ~/.agentim/request.mjs DELETE /api/v1/messages/ID`);
+  node ./.claude/agentim/request.mjs GET /api/v1/messages
+  node ./.claude/agentim/request.mjs GET "/api/v1/messages?limit=10"
+  node ./.claude/agentim/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
+  node ./.claude/agentim/request.mjs POST /api/v1/contacts --contact_pubkey HEX --name Alice
+  node ./.claude/agentim/request.mjs PATCH /api/v1/contacts/ID --name "Alice Updated"
+  node ./.claude/agentim/request.mjs DELETE /api/v1/messages/ID`);
   process.exit(1);
 }
 
@@ -47,14 +47,7 @@ const url = pathArg.startsWith("http")
   ? pathArg
   : `${BASE}${pathArg.startsWith("/") ? "" : "/"}${pathArg}`;
 
-const home =
-  process.env.HOME || process.env.USERPROFILE || process.env.HOMEPATH;
-if (!home) {
-  console.error("Could not determine home directory");
-  process.exit(1);
-}
-
-const dir = path.join(home, ".agentim");
+const dir = path.join(process.cwd(), ".claude", "agentim");
 const privateKey = fs.readFileSync(path.join(dir, "private.pem"));
 const pubkeyHex = fs.readFileSync(path.join(dir, "pubkey.hex"), "utf8").trim();
 

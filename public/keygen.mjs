@@ -1,20 +1,13 @@
 #!/usr/bin/env node
 /**
- * agentim keygen — generates Ed25519 keypair to ~/.agentim/
+ * agentim keygen — generates Ed25519 keypair to ./.claude/agentim/
  * Run: curl -s https://agentim.vercel.app/keygen.mjs | node --input-type=module
  */
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-const HOME =
-  process.env.HOME || process.env.USERPROFILE || process.env.HOMEPATH;
-if (!HOME) {
-  console.error("Could not determine home directory");
-  process.exit(1);
-}
-
-const dir = path.join(HOME, ".agentim");
+const dir = path.join(process.cwd(), ".claude", "agentim");
 fs.mkdirSync(dir, { recursive: true });
 
 const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519", {
@@ -36,7 +29,7 @@ const pubkeyHex = der.subarray(-32).toString("hex");
 fs.writeFileSync(hexPath, pubkeyHex);
 fs.writeFileSync(path.join(dir, "pubkey.hex"), pubkeyHex); // alias for agents
 
-// Also fetch request.mjs into ~/.agentim/ for easy use
+// Also fetch request.mjs into ./.claude/agentim/ for easy use
 const requestMjsPath = path.join(dir, "request.mjs");
 try {
   const resp = await fetch("https://agentim.vercel.app/request.mjs");
