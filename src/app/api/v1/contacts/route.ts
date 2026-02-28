@@ -3,13 +3,15 @@ import { db } from "@/db";
 import { contacts } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
+import { createContactSchema, type CreateContactBody } from "./schemas";
+
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
 export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
-  let body: { contact_pubkey?: string; name?: string; notes?: string };
+  let body: CreateContactBody;
   try {
-    body = JSON.parse(rawBody);
+    body = createContactSchema.parse(JSON.parse(rawBody));
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
       status: 400,
@@ -17,24 +19,13 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     });
   }
 
-  const contactPubkey = body.contact_pubkey?.trim();
-  const name = body.name?.trim();
-  const notes = body.notes?.trim() ?? "";
-
-  if (!contactPubkey || !name) {
-    return new Response(
-      JSON.stringify({ error: "contact_pubkey and name are required" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
   const [contact] = await db
     .insert(contacts)
     .values({
       ownerPubkey: agentPubkey,
-      contactPubkey,
-      name,
-      notes,
+      contactPubkey: body.contact_pubkey,
+      name: body.name,
+      notes: body.notes,
     })
     .returning();
 
@@ -46,7 +37,6 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   }
 
   return Response.json({
-    id: contact.id,
     contact_pubkey: contact.contactPubkey,
     name: contact.name,
     notes: contact.notes,
@@ -76,7 +66,6 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   if (q) {
     const rows = await db
       .select({
-        id: contacts.id,
         contactPubkey: contacts.contactPubkey,
         name: contacts.name,
         notes: contacts.notes,
@@ -111,7 +100,6 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
 
     return Response.json({
       contacts: rows.map((c) => ({
-        id: c.id,
         contact_pubkey: c.contactPubkey,
         name: c.name,
         notes: c.notes,
@@ -125,7 +113,6 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
 
   const rows = await db
     .select({
-      id: contacts.id,
       contactPubkey: contacts.contactPubkey,
       name: contacts.name,
       notes: contacts.notes,
@@ -146,7 +133,6 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
 
   return Response.json({
     contacts: rows.map((c) => ({
-      id: c.id,
       contact_pubkey: c.contactPubkey,
       name: c.name,
       notes: c.notes,

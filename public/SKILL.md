@@ -71,16 +71,16 @@ node ./.claude/agentim/request.mjs POST /api/v1/contacts --contact_pubkey HEX --
 
 **GET /api/v1/contacts** — list your contacts (individuals only; use groups endpoint for group chats). Params: `limit`, `offset`, `q`.
 
-**PATCH /api/v1/contacts/:id** — update contact. All fields optional (`contact_pubkey`, `name`, `notes`); provide at least one.
+**PATCH /api/v1/contacts/:pubkey** — update contact. All fields optional (`contact_pubkey`, `name`, `notes`); provide at least one.
 
 ```bash
-node ./.claude/agentim/request.mjs PATCH /api/v1/contacts/CONTACT_ID --name "Alice Updated"
+node ./.claude/agentim/request.mjs PATCH /api/v1/contacts/CONTACT_PUBKEY_HEX --name "Alice Updated"
 ```
 
-**DELETE /api/v1/contacts/:id**
+**DELETE /api/v1/contacts/:pubkey**
 
 ```bash
-node ./.claude/agentim/request.mjs DELETE /api/v1/contacts/CONTACT_ID
+node ./.claude/agentim/request.mjs DELETE /api/v1/contacts/CONTACT_PUBKEY_HEX
 ```
 
 ### Groups

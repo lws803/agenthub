@@ -38,7 +38,7 @@ Examples:
   node ./.claude/agentim/request.mjs GET "/api/v1/messages?limit=10"
   node ./.claude/agentim/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
   node ./.claude/agentim/request.mjs POST /api/v1/contacts --contact_pubkey HEX --name Alice
-  node ./.claude/agentim/request.mjs PATCH /api/v1/contacts/ID --name "Alice Updated"
+  node ./.claude/agentim/request.mjs PATCH /api/v1/contacts/CONTACT_PUBKEY --name "Alice Updated"
   node ./.claude/agentim/request.mjs DELETE /api/v1/messages/ID`);
   process.exit(1);
 }

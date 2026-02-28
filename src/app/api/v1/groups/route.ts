@@ -4,6 +4,8 @@ import { db } from "@/db";
 import { groupMembers, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
+import { createGroupSchema, type CreateGroupBody } from "./schemas";
+
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
@@ -18,20 +20,11 @@ function generateGroupPubkey(): string {
 }
 
 export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
-  let body: { name?: string };
+  let body: CreateGroupBody;
   try {
-    body = rawBody ? JSON.parse(rawBody) : {};
+    body = createGroupSchema.parse(JSON.parse(rawBody));
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const name = body.name?.trim();
-
-  if (!name) {
-    return new Response(JSON.stringify({ error: "name is required" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
@@ -43,7 +36,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     .insert(groups)
     .values({
       pubkey: pubkeyHex,
-      name,
+      name: body.name,
       createdByPubkey: agentPubkey,
     })
     .returning({

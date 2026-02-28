@@ -3,6 +3,8 @@ import { db } from "@/db";
 import { groupMembers, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
+import { addMemberSchema, type AddMemberBody } from "./schemas";
+
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
@@ -101,23 +103,16 @@ export const POST = withAuth(async (_, { agentPubkey, params, rawBody }) => {
     });
   }
 
-  let body: { member_pubkey?: string };
+  let body: AddMemberBody;
   try {
-    body = rawBody ? JSON.parse(rawBody) : {};
+    body = addMemberSchema.parse(JSON.parse(rawBody));
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
   }
-
-  const memberPubkey = body.member_pubkey?.trim();
-  if (!memberPubkey) {
-    return new Response(
-      JSON.stringify({ error: "member_pubkey is required" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
-  }
+  const { member_pubkey: memberPubkey } = body;
 
   const [group] = await db
     .select({ id: groups.id, createdByPubkey: groups.createdByPubkey })
