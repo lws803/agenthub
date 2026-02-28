@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { messages } from "@/db/schema";
+import { contacts, messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
 const DEFAULT_LIMIT = 20;
@@ -92,13 +92,25 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     readAt: Date | null;
   };
 
-  const toMessageJson = (r: MessageRow) => ({
+  const toMessageJson = (
+    r: MessageRow,
+    nameByPubkey: Record<string, string>
+  ) => ({
     id: r.id,
     sender_pubkey: r.senderPubkey,
+    ...(nameByPubkey[r.senderPubkey] != null && {
+      sender_name: nameByPubkey[r.senderPubkey],
+    }),
     recipient_pubkey: r.recipientPubkey,
+    ...(nameByPubkey[r.recipientPubkey] != null && {
+      recipient_name: nameByPubkey[r.recipientPubkey],
+    }),
     body: r.body,
     ...(r.originalSenderPubkey != null && {
       original_sender_pubkey: r.originalSenderPubkey,
+      ...(nameByPubkey[r.originalSenderPubkey] != null && {
+        original_sender_name: nameByPubkey[r.originalSenderPubkey],
+      }),
     }),
     created_at: r.createdAt,
     read_at: r.readAt,
@@ -125,6 +137,31 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
 
   const total = countResult[0]?.count ?? 0;
 
+  const pubkeys = [
+    ...new Set(
+      rows.flatMap((r) => [
+        r.senderPubkey,
+        r.recipientPubkey,
+        ...(r.originalSenderPubkey ? [r.originalSenderPubkey] : []),
+      ])
+    ),
+  ];
+  const nameByPubkey: Record<string, string> = {};
+  if (pubkeys.length > 0) {
+    const contactRows = await db
+      .select({ contactPubkey: contacts.contactPubkey, name: contacts.name })
+      .from(contacts)
+      .where(
+        and(
+          eq(contacts.ownerPubkey, agentPubkey),
+          inArray(contacts.contactPubkey, pubkeys)
+        )
+      );
+    for (const c of contactRows) {
+      nameByPubkey[c.contactPubkey] = c.name;
+    }
+  }
+
   const idsToMarkRead = rows
     .filter((r) => r.recipientPubkey === agentPubkey && r.readAt === null)
     .map((r) => r.id);
@@ -136,7 +173,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   }
 
   return Response.json({
-    messages: rows.map(toMessageJson),
+    messages: rows.map((r) => toMessageJson(r, nameByPubkey)),
     total,
     limit,
     offset,
