@@ -2,8 +2,12 @@ import { z } from "zod";
 
 export const patchContactSchema = z
   .object({
-    contact_pubkey: z.string().trim().optional(),
-    name: z.string().trim().optional(),
+    contact_pubkey: z
+      .string()
+      .trim()
+      .min(1, "contact_pubkey cannot be empty")
+      .optional(),
+    name: z.string().trim().min(1, "name cannot be empty").optional(),
     notes: z.string().trim().optional(),
   })
   .refine(
