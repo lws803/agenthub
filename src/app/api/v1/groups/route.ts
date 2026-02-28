@@ -60,7 +60,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
 
   return Response.json({
     id: group.id,
-    pub_key: group.pubkey,
+    pubkey: group.pubkey,
     name: group.name,
     created_at: group.createdAt,
   });
@@ -103,7 +103,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   return Response.json({
     groups: rows.map(({ id, pubkey, name, createdAt, createdByPubkey }) => ({
       id,
-      pub_key: pubkey,
+      pubkey,
       name,
       created_at: createdAt,
       created_by_pubkey: createdByPubkey,
