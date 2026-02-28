@@ -28,7 +28,7 @@ function generateGroupKeypair(): {
 export const POST = withAuth(async (request, { agentPubkey, rawBody }) => {
   let body: { name?: string };
   try {
-    body = JSON.parse(rawBody);
+    body = rawBody ? JSON.parse(rawBody) : {};
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
       status: 400,
