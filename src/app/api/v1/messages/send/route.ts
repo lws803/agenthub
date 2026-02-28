@@ -3,10 +3,12 @@ import { db } from "@/db";
 import { groupMembers, groups, messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
+import { SendMessageBody, sendMessageSchema } from "./schemas";
+
 export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
-  let body: { recipient_pubkey?: string; body?: string };
+  let requestBody: SendMessageBody;
   try {
-    body = JSON.parse(rawBody);
+    requestBody = sendMessageSchema.parse(JSON.parse(rawBody));
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
       status: 400,
@@ -14,22 +16,10 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     });
   }
 
-  const recipientPubkey = body.recipient_pubkey?.trim();
-  const messageBody = body.body;
-
-  if (!recipientPubkey || messageBody === undefined || messageBody === null) {
-    return new Response(
-      JSON.stringify({ error: "recipient_pubkey and body are required" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
-  const bodyStr = String(messageBody);
-
   const [group] = await db
     .select({ id: groups.id, pubkey: groups.pubkey })
     .from(groups)
-    .where(eq(groups.pubkey, recipientPubkey))
+    .where(eq(groups.pubkey, requestBody.recipient_pubkey))
     .limit(1);
 
   if (group) {
@@ -64,7 +54,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     const fanOutRows = otherMembers.map((m) => ({
       senderPubkey: group.pubkey,
       recipientPubkey: m.memberPubkey,
-      body: bodyStr,
+      body: requestBody.body,
       originalSenderPubkey: agentPubkey,
     }));
     if (fanOutRows.length > 0) {
@@ -76,7 +66,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       .values({
         senderPubkey: agentPubkey,
         recipientPubkey: group.pubkey,
-        body: bodyStr,
+        body: requestBody.body,
       })
       .returning({ id: messages.id, createdAt: messages.createdAt });
 
@@ -97,8 +87,8 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     .insert(messages)
     .values({
       senderPubkey: agentPubkey,
-      recipientPubkey,
-      body: bodyStr,
+      recipientPubkey: requestBody.recipient_pubkey,
+      body: requestBody.body,
     })
     .returning({ id: messages.id, createdAt: messages.createdAt });
 
