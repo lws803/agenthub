@@ -3,8 +3,6 @@ import { db } from "@/db";
 import { groupMembers, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
-import { addMemberSchema, type AddMemberBody } from "./schemas";
-
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
@@ -94,7 +92,7 @@ export const GET = withAuth(async (request, { agentPubkey, params }) => {
   });
 });
 
-export const POST = withAuth(async (_, { agentPubkey, params, rawBody }) => {
+export const POST = withAuth(async (_, { agentPubkey, params }) => {
   const pubKey = params?.pub_key;
   if (!pubKey) {
     return new Response(JSON.stringify({ error: "Group pub_key required" }), {
@@ -102,17 +100,6 @@ export const POST = withAuth(async (_, { agentPubkey, params, rawBody }) => {
       headers: { "Content-Type": "application/json" },
     });
   }
-
-  let body: AddMemberBody;
-  try {
-    body = addMemberSchema.parse(JSON.parse(rawBody));
-  } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-  const { member_pubkey: memberPubkey } = body;
 
   const [group] = await db
     .select({ id: groups.id, createdByPubkey: groups.createdByPubkey })
@@ -127,26 +114,19 @@ export const POST = withAuth(async (_, { agentPubkey, params, rawBody }) => {
     });
   }
 
-  if (group.createdByPubkey !== agentPubkey) {
-    return new Response(
-      JSON.stringify({ error: "Only the owner can add members" }),
-      { status: 403, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
   const [existing] = await db
     .select()
     .from(groupMembers)
     .where(
       and(
         eq(groupMembers.groupId, group.id),
-        eq(groupMembers.memberPubkey, memberPubkey)
+        eq(groupMembers.memberPubkey, agentPubkey)
       )
     )
     .limit(1);
 
   if (existing) {
-    return new Response(JSON.stringify({ error: "Member already in group" }), {
+    return new Response(JSON.stringify({ error: "Already a member" }), {
       status: 409,
       headers: { "Content-Type": "application/json" },
     });
@@ -156,7 +136,7 @@ export const POST = withAuth(async (_, { agentPubkey, params, rawBody }) => {
     .insert(groupMembers)
     .values({
       groupId: group.id,
-      memberPubkey,
+      memberPubkey: agentPubkey,
     })
     .returning({
       id: groupMembers.id,
