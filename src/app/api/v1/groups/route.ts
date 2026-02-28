@@ -105,6 +105,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
       name: groups.name,
       createdAt: groups.createdAt,
       createdByPubkey: groups.createdByPubkey,
+      total: sql<number>`count(*) over()::int`,
     })
     .from(groups)
     .innerJoin(groupMembers, eq(groupMembers.groupId, groups.id))
@@ -113,21 +114,15 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     .limit(limit)
     .offset(offset);
 
-  const countResult = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(groups)
-    .innerJoin(groupMembers, eq(groupMembers.groupId, groups.id))
-    .where(eq(groupMembers.memberPubkey, agentPubkey));
-
-  const total = countResult[0]?.count ?? 0;
+  const total = rows[0]?.total ?? 0;
 
   return Response.json({
-    groups: rows.map((g) => ({
-      id: g.id,
-      pub_key: g.pubkey,
-      name: g.name,
-      created_at: g.createdAt,
-      created_by_pubkey: g.createdByPubkey,
+    groups: rows.map(({ id, pubkey, name, createdAt, createdByPubkey }) => ({
+      id,
+      pub_key: pubkey,
+      name,
+      created_at: createdAt,
+      created_by_pubkey: createdByPubkey,
     })),
     total,
     limit,

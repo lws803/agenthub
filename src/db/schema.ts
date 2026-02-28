@@ -28,18 +28,14 @@ export const contacts = pgTable(
   (t) => [index("idx_contacts_search").using("gin", t.searchVector)]
 );
 
-export const groups = pgTable(
-  "groups",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    pubkey: text("pub_key").notNull().unique(),
-    privateKeyPem: text("private_key_pem").notNull(),
-    name: text("name").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    createdByPubkey: text("created_by_pubkey").notNull(),
-  },
-  (t) => [index("idx_groups_pub_key").on(t.pubkey)]
-);
+export const groups = pgTable("groups", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  pubkey: text("pub_key").notNull().unique(),
+  privateKeyPem: text("private_key_pem").notNull(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdByPubkey: text("created_by_pubkey").notNull(),
+});
 
 export const groupMembers = pgTable(
   "group_members",

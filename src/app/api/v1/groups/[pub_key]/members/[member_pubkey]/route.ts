@@ -15,7 +15,7 @@ export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
   }
 
   const [group] = await db
-    .select({ id: groups.id })
+    .select({ id: groups.id, createdByPubkey: groups.createdByPubkey })
     .from(groups)
     .where(eq(groups.pubkey, pubKey))
     .limit(1);
@@ -25,6 +25,20 @@ export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
       status: 404,
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  const isOwner = group.createdByPubkey === agentPubkey;
+  const isRemovingSelf = agentPubkey === memberPubkey;
+
+  if (isRemovingSelf) {
+    // Members can quit (remove themselves)
+  } else if (isOwner) {
+    // Owner can remove any member
+  } else {
+    return new Response(
+      JSON.stringify({ error: "Only the owner can remove other members" }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   const [callerMembership] = await db

@@ -76,9 +76,17 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     readAt: messages.readAt,
   };
 
-  const toMessageJson = (
-    r: typeof selectFields extends infer S ? { [K in keyof S]: unknown } : never
-  ) => ({
+  type MessageRow = {
+    id: string;
+    senderPubkey: string;
+    recipientPubkey: string;
+    body: string;
+    originalSenderPubkey: string | null;
+    createdAt: Date;
+    readAt: Date | null;
+  };
+
+  const toMessageJson = (r: MessageRow) => ({
     id: r.id,
     sender_pubkey: r.senderPubkey,
     recipient_pubkey: r.recipientPubkey,
