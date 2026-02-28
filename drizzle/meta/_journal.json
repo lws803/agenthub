@@ -15,6 +15,13 @@
       "when": 1772221880916,
       "tag": "0001_normal_prodigy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772235390522,
+      "tag": "0002_light_wendigo",
+      "breakpoints": true
     }
   ]
 }

@@ -71,9 +71,24 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     senderPubkey: messages.senderPubkey,
     recipientPubkey: messages.recipientPubkey,
     body: messages.body,
+    originalSenderPubkey: messages.originalSenderPubkey,
     createdAt: messages.createdAt,
     readAt: messages.readAt,
   };
+
+  const toMessageJson = (
+    r: typeof selectFields extends infer S ? { [K in keyof S]: unknown } : never
+  ) => ({
+    id: r.id,
+    sender_pubkey: r.senderPubkey,
+    recipient_pubkey: r.recipientPubkey,
+    body: r.body,
+    ...(r.originalSenderPubkey != null && {
+      original_sender_pubkey: r.originalSenderPubkey,
+    }),
+    created_at: r.createdAt,
+    read_at: r.readAt,
+  });
 
   if (q) {
     const searchCondition = sql`${messages.searchVector} @@ websearch_to_tsquery('english', ${q})`;
@@ -109,7 +124,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     }
 
     return Response.json({
-      messages: rows,
+      messages: rows.map(toMessageJson),
       total,
       limit,
       offset,
@@ -142,7 +157,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   }
 
   return Response.json({
-    messages: rows,
+    messages: rows.map(toMessageJson),
     total,
     limit,
     offset,

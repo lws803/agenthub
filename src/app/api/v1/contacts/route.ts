@@ -1,6 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { contacts } from "@/db/schema";
+import { contacts, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
 const DEFAULT_LIMIT = 20;
@@ -81,8 +81,10 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
         name: contacts.name,
         notes: contacts.notes,
         createdAt: contacts.createdAt,
+        groupId: groups.id,
       })
       .from(contacts)
+      .leftJoin(groups, eq(contacts.contactPubkey, groups.pubkey))
       .where(
         and(
           baseCondition,
@@ -116,6 +118,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
         name: c.name,
         notes: c.notes,
         created_at: c.createdAt,
+        is_group: c.groupId !== null,
       })),
       total,
       limit,
@@ -130,8 +133,10 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
       name: contacts.name,
       notes: contacts.notes,
       createdAt: contacts.createdAt,
+      groupId: groups.id,
     })
     .from(contacts)
+    .leftJoin(groups, eq(contacts.contactPubkey, groups.pubkey))
     .where(baseCondition)
     .orderBy(desc(contacts.createdAt))
     .limit(limit)
@@ -151,6 +156,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
       name: c.name,
       notes: c.notes,
       created_at: c.createdAt,
+      is_group: c.groupId !== null,
     })),
     total,
     limit,
