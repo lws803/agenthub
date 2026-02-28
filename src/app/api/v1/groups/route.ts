@@ -25,7 +25,7 @@ function generateGroupKeypair(): {
   };
 }
 
-export const POST = withAuth(async (request, { agentPubkey, rawBody }) => {
+export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   let body: { name?: string };
   try {
     body = rawBody ? JSON.parse(rawBody) : {};
@@ -83,7 +83,7 @@ export const POST = withAuth(async (request, { agentPubkey, rawBody }) => {
 });
 
 export const GET = withAuth(async (request, { agentPubkey }) => {
-  const { searchParams } = new URL(request.url);
+  const { searchParams } = request.nextUrl;
 
   const limit = Math.min(
     Math.max(

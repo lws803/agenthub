@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { groupMembers, groups, messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
-export const POST = withAuth(async (request, { agentPubkey, rawBody }) => {
+export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   let body: { recipient_pubkey?: string; body?: string };
   try {
     body = JSON.parse(rawBody);

@@ -6,7 +6,7 @@ import { withAuth } from "@/lib/auth";
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
-export const POST = withAuth(async (request, { agentPubkey, rawBody }) => {
+export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   let body: { contact_pubkey?: string; name?: string; notes?: string };
   try {
     body = JSON.parse(rawBody);
@@ -55,7 +55,7 @@ export const POST = withAuth(async (request, { agentPubkey, rawBody }) => {
 });
 
 export const GET = withAuth(async (request, { agentPubkey }) => {
-  const { searchParams } = new URL(request.url);
+  const { searchParams } = request.nextUrl;
 
   const limit = Math.min(
     Math.max(

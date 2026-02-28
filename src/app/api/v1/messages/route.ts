@@ -7,7 +7,7 @@ const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
 export const GET = withAuth(async (request, { agentPubkey }) => {
-  const { searchParams } = new URL(request.url);
+  const { searchParams } = request.nextUrl;
 
   const limit = Math.min(
     Math.max(

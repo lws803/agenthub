@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import * as crypto from "node:crypto";
 
 const ED25519_DER_PREFIX = Buffer.from("302a300506032b6570032100", "hex");
@@ -15,7 +16,7 @@ export type AuthResult =
   | { ok: false; status: number; message: string };
 
 export async function verifyAuth(
-  request: Request,
+  request: NextRequest,
   rawBody: string
 ): Promise<AuthResult> {
   const pubkey = request.headers.get("x-agent-pubkey");
@@ -89,13 +90,13 @@ export type AuthContext = {
 };
 
 export type AuthenticatedHandler = (
-  request: Request,
+  request: NextRequest,
   context: AuthContext & { params?: Record<string, string> }
 ) => Promise<Response>;
 
 export function withAuth(handler: AuthenticatedHandler) {
   return async (
-    request: Request,
+    request: NextRequest,
     context?: { params?: Promise<Record<string, string>> }
   ): Promise<Response> => {
     const rawBody = request.method === "GET" ? "" : await request.text();

@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
-export const DELETE = withAuth(async (request, { agentPubkey, params }) => {
+export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
   const id = params?.id;
   if (!id) {
     return new Response(JSON.stringify({ error: "Message ID required" }), {
