@@ -7,22 +7,14 @@ import { withAuth } from "@/lib/auth";
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
-function generateGroupKeypair(): {
-  pubkeyHex: string;
-  privateKeyPem: string;
-} {
-  const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519", {
+function generateGroupPubkey(): string {
+  const { publicKey } = crypto.generateKeyPairSync("ed25519", {
     publicKeyEncoding: { type: "spki", format: "pem" },
-    privateKeyEncoding: { type: "pkcs8", format: "pem" },
   });
   const der = crypto
     .createPublicKey(publicKey)
     .export({ format: "der", type: "spki" });
-  const pubkeyHex = der.subarray(-32).toString("hex");
-  return {
-    pubkeyHex,
-    privateKeyPem: privateKey,
-  };
+  return der.subarray(-32).toString("hex");
 }
 
 export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
@@ -45,13 +37,12 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     });
   }
 
-  const { pubkeyHex, privateKeyPem } = generateGroupKeypair();
+  const pubkeyHex = generateGroupPubkey();
 
   const [group] = await db
     .insert(groups)
     .values({
       pubkey: pubkeyHex,
-      privateKeyPem,
       name,
       createdByPubkey: agentPubkey,
     })

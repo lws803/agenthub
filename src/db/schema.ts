@@ -30,8 +30,7 @@ export const contacts = pgTable(
 
 export const groups = pgTable("groups", {
   id: uuid("id").primaryKey().defaultRandom(),
-  pubkey: text("pub_key").notNull().unique(),
-  privateKeyPem: text("private_key_pem").notNull(),
+  pubkey: text("pubkey").notNull().unique(),
   name: text("name").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdByPubkey: text("created_by_pubkey").notNull(),
@@ -44,7 +43,7 @@ export const groupMembers = pgTable(
     groupId: uuid("group_id")
       .notNull()
       .references(() => groups.id, { onDelete: "cascade" }),
-    memberPubkey: text("member_pub_key").notNull(),
+    memberPubkey: text("member_pubkey").notNull(),
     joinedAt: timestamp("joined_at").defaultNow().notNull(),
   },
   (t) => [
