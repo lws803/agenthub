@@ -14,11 +14,7 @@ export function runKeygen() {
     privateKeyEncoding: { type: "pkcs8", format: "pem" },
   });
 
-  const privatePath = path.join(dir, "private.pem");
-  const publicPath = path.join(dir, "public.pem");
-
-  fs.writeFileSync(privatePath, privateKey, { mode: 0o600 });
-  fs.writeFileSync(publicPath, publicKey);
+  fs.writeFileSync(path.join(dir, "private.pem"), privateKey, { mode: 0o600 });
 
   const der = crypto
     .createPublicKey(publicKey)
