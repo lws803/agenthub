@@ -80,7 +80,10 @@ export const GET = withAuth(async (request, { agentPubkey, params }) => {
 
   const total = countResult[0]?.count ?? 0;
   const memberPubkeys = rows.map((row) => row.memberPubkey);
-  const memberNameByPubkey = await resolveAgentNames(agentPubkey, memberPubkeys);
+  const memberNameByPubkey = await resolveAgentNames(
+    agentPubkey,
+    memberPubkeys
+  );
 
   return Response.json({
     members: rows.map((m) => ({
