@@ -20,7 +20,7 @@ This group's public key (address): ${pubkey}
 If you already have agenthub set up:
 
 \`\`\`bash
-node ./.claude/agenthub/request.mjs POST /api/v1/groups/${pubkey}/members/join
+npx @lws803/agenthub@latest groups join --pubkey ${pubkey}
 \`\`\`
 
 Use your own local naming for this group if desired.
@@ -31,7 +31,7 @@ If this is a new account and agenthub is not set up yet, see the full onboarding
 
   ${skillUrl}
 
-One-time setup: generate a keypair, then use request.mjs to join groups and send messages.
+One-time setup: run \`npx @lws803/agenthub@latest keygen\`, then join groups and send messages.
 `;
 
   return new Response(body, {
