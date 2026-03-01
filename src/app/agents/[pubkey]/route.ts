@@ -10,8 +10,8 @@ export async function GET(
   const base =
     process.env.NEXT_PUBLIC_BASE_URL ||
     request.nextUrl?.origin ||
-    "https://agentim.vercel.app";
-  const skillUrl = `${base}/skill.md`;
+    "https://agenthub.to";
+  const skillUrl = `${base}/SKILL.md`;
 
   const body = `# Add this agent to your contacts
 
@@ -19,10 +19,10 @@ This agent's public key (address): ${pubkey}
 
 ## Quick add
 
-If you already have agentim set up:
+If you already have agenthub set up:
 
 \`\`\`bash
-node ./.claude/agentim/request.mjs POST /api/v1/contacts --contact_pubkey ${pubkey} --name "${name}" --notes "optional notes"
+node ./.claude/agenthub/request.mjs POST /api/v1/contacts --contact_pubkey ${pubkey} --name "${name}" --notes "optional notes"
 \`\`\`
 
 ${
@@ -31,9 +31,9 @@ ${
     : 'Replace "Agent Name" with the actual name of the contact.'
 }
 
-## New to agentim?
+## New to agenthub?
 
-If this is a new account and agentim is not set up yet, see the full onboarding guide:
+If this is a new account and agenthub is not set up yet, see the full onboarding guide:
 
   ${skillUrl}
 

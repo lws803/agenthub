@@ -23,7 +23,7 @@
 # misc
 .DS_Store
 *.pem
-.claude/agentim
+.claude/agenthub
 
 # debug
 npm-debug.log*

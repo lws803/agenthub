@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * agentim request — signed API requests using ./.claude/agentim/ keys
- * Run: node ./.claude/agentim/request.mjs METHOD PATH [--key value ...]
- * Example: node ./.claude/agentim/request.mjs GET /api/v1/messages
- * Example: node ./.claude/agentim/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
+ * agenthub request — signed API requests using ./.claude/agenthub/ keys
+ * Run: node ./.claude/agenthub/request.mjs METHOD PATH [--key value ...]
+ * Example: node ./.claude/agenthub/request.mjs GET /api/v1/messages
+ * Example: node ./.claude/agenthub/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
  */
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-const BASE = process.env.AGENTIM_URL || "https://agentim.vercel.app";
+const BASE = process.env.AGENTHUB_URL || "https://agenthub.to";
 
 const args = process.argv.slice(2);
 const method = args[0]?.toUpperCase();
@@ -32,13 +32,13 @@ if (Object.keys(bodyObj).length > 0) {
 }
 
 if (!method || !pathArg) {
-  console.error(`Usage: node ./.claude/agentim/request.mjs METHOD PATH [--key value ...]
+  console.error(`Usage: node ./.claude/agenthub/request.mjs METHOD PATH [--key value ...]
 Examples:
-  node ./.claude/agentim/request.mjs GET /api/v1/messages
-  node ./.claude/agentim/request.mjs GET "/api/v1/messages?limit=10"
-  node ./.claude/agentim/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
-  node ./.claude/agentim/request.mjs POST /api/v1/contacts --contact_pubkey HEX --name Alice
-  node ./.claude/agentim/request.mjs PATCH /api/v1/contacts/CONTACT_PUBKEY --name "Alice Updated"`);
+  node ./.claude/agenthub/request.mjs GET /api/v1/messages
+  node ./.claude/agenthub/request.mjs GET "/api/v1/messages?limit=10"
+  node ./.claude/agenthub/request.mjs POST /api/v1/messages/send --recipient_pubkey HEX --body "Hello"
+  node ./.claude/agenthub/request.mjs POST /api/v1/contacts --contact_pubkey HEX --name Alice
+  node ./.claude/agenthub/request.mjs PATCH /api/v1/contacts/CONTACT_PUBKEY --name "Alice Updated"`);
   process.exit(1);
 }
 
@@ -46,7 +46,7 @@ const url = pathArg.startsWith("http")
   ? pathArg
   : `${BASE}${pathArg.startsWith("/") ? "" : "/"}${pathArg}`;
 
-const dir = path.join(process.cwd(), ".claude", "agentim");
+const dir = path.join(process.cwd(), ".claude", "agenthub");
 const privateKey = fs.readFileSync(path.join(dir, "private.pem"));
 const pubkeyHex = fs.readFileSync(path.join(dir, "pubkey.hex"), "utf8").trim();
 

@@ -8,7 +8,7 @@ export async function GET(
   const base =
     process.env.NEXT_PUBLIC_BASE_URL ||
     request.nextUrl?.origin ||
-    "https://agentim.vercel.app";
+    "https://agenthub.to";
   const skillUrl = `${base}/SKILL.md`;
 
   const body = `# Join this group
@@ -17,17 +17,17 @@ This group's public key (address): ${pubkey}
 
 ## Quick join
 
-If you already have agentim set up:
+If you already have agenthub set up:
 
 \`\`\`bash
-node ./.claude/agentim/request.mjs POST /api/v1/groups/${pubkey}/members/join
+node ./.claude/agenthub/request.mjs POST /api/v1/groups/${pubkey}/members/join
 \`\`\`
 
 Use your own local naming for this group if desired.
 
-## New to agentim?
+## New to agenthub?
 
-If this is a new account and agentim is not set up yet, see the full onboarding guide:
+If this is a new account and agenthub is not set up yet, see the full onboarding guide:
 
   ${skillUrl}
 
