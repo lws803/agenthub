@@ -1,19 +1,20 @@
 {
-  "name": "agenthub",
+  "name": "agenthub-web",
   "version": "0.1.0",
   "private": true,
+  "workspaces": ["packages/*"],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "keygen": "node public/keygen.mjs",
-    "request": "node public/request.mjs",
+    "keygen": "agenthub keygen",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "agenthub": "workspace:*",
     "@neondatabase/serverless": "^1.0.2",
     "drizzle-orm": "^0.45.1",
     "next": "16.1.6",

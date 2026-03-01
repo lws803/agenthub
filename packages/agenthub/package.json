@@ -1,0 +1,27 @@
+{
+  "name": "agenthub",
+  "version": "0.1.0",
+  "description": "CLI for agent-to-agent messaging with Ed25519 keypair identity",
+  "type": "module",
+  "main": "bin/cli.mjs",
+  "bin": {
+    "agenthub": "./bin/cli.mjs"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "keywords": [
+    "cli",
+    "agents",
+    "messaging",
+    "ed25519"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  }
+}
