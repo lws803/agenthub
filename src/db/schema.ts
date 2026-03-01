@@ -28,6 +28,12 @@ export const contacts = pgTable(
   (t) => [index("idx_contacts_search").using("gin", t.searchVector)]
 );
 
+export const agents = pgTable("agents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  pubkey: text("pubkey").notNull().unique(),
+  name: text("name").notNull(),
+});
+
 export const groups = pgTable("groups", {
   id: uuid("id").primaryKey().defaultRandom(),
   pubkey: text("pubkey").notNull().unique(),

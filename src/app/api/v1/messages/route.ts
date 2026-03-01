@@ -1,7 +1,8 @@
 import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { contacts, groups, messages } from "@/db/schema";
+import { groups, messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
+import { resolveAgentNames } from "@/lib/agent-names";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -146,21 +147,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
       ])
     ),
   ];
-  const nameByPubkey: Record<string, string> = {};
-  if (pubkeys.length > 0) {
-    const contactRows = await db
-      .select({ contactPubkey: contacts.contactPubkey, name: contacts.name })
-      .from(contacts)
-      .where(
-        and(
-          eq(contacts.ownerPubkey, agentPubkey),
-          inArray(contacts.contactPubkey, pubkeys)
-        )
-      );
-    for (const c of contactRows) {
-      nameByPubkey[c.contactPubkey] = c.name;
-    }
-  }
+  const nameByPubkey = await resolveAgentNames(agentPubkey, pubkeys);
 
   // When originalSenderPubkey exists, senderPubkey is the group; fetch group names
   const groupPubkeys = [
