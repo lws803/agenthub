@@ -107,7 +107,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
       group_pubkey: isGroup ? r.senderPubkey : undefined,
       group_name: isGroup ? groupNameByPubkey[r.senderPubkey] : undefined,
       created_at: r.createdAt,
-      read_at: r.readAt,
+      is_new: r.readAt === null,
     };
   };
 
