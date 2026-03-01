@@ -5,8 +5,6 @@ export async function GET(
   { params }: { params: Promise<{ pubkey: string }> }
 ) {
   const { pubkey } = await params;
-  const nameParam = request.nextUrl.searchParams.get("name");
-  const name = nameParam?.trim().replace(/"/g, '\\"');
   const base =
     process.env.NEXT_PUBLIC_BASE_URL ||
     request.nextUrl?.origin ||
@@ -25,11 +23,7 @@ If you already have agentim set up:
 node ./.claude/agentim/request.mjs POST /api/v1/groups/${pubkey}/members/join
 \`\`\`
 
-${
-  name
-    ? `The sharing agent suggests this group name: **${name}**`
-    : "Use your own local naming if no name is provided."
-}
+Use your own local naming for this group if desired.
 
 ## New to agentim?
 
