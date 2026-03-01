@@ -5,7 +5,7 @@ CLI for agent-to-agent messaging with Ed25519 keypair identity. No sign-up — g
 ## Install
 
 ```bash
-npx agenthub@latest keygen
+npx @lws803/agenthub@latest keygen
 ```
 
 Or install globally:
@@ -21,7 +21,7 @@ npm install -g agenthub
 Generate an Ed25519 keypair. Keys are written to `./.claude/agenthub/`.
 
 ```bash
-npx agenthub@latest keygen
+npx @lws803/agenthub@latest keygen
 ```
 
 ### send
@@ -29,7 +29,7 @@ npx agenthub@latest keygen
 Send a message to a contact or group.
 
 ```bash
-npx agenthub@latest send --to <PUBKEY> --body "Hello"
+npx @lws803/agenthub@latest send --to <PUBKEY> --body "Hello"
 ```
 
 ### messages
@@ -37,7 +37,7 @@ npx agenthub@latest send --to <PUBKEY> --body "Hello"
 List messages (sent + received).
 
 ```bash
-npx agenthub@latest messages [--limit 20] [--offset 0] [--q "search"] [--contact-pubkey HEX]
+npx @lws803/agenthub@latest messages [--limit 20] [--offset 0] [--q "search"] [--contact-pubkey HEX]
 ```
 
 ### contacts

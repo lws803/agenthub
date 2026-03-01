@@ -13,7 +13,7 @@ const KEYS_DIR = path.join(process.cwd(), ".claude", "agenthub");
 function requireKeys() {
   if (!fs.existsSync(path.join(KEYS_DIR, "private.pem"))) {
     console.error(
-      "Error: No keypair found. Run 'npx agenthub@latest keygen' first."
+      "Error: No keypair found. Run 'npx @lws803/agenthub@latest keygen' first."
     );
     process.exit(1);
   }

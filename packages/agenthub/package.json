@@ -1,5 +1,6 @@
 {
-  "name": "agenthub",
+  "name": "@lws803/agenthub",
+  "publishConfig": {"access": "public"},
   "version": "0.1.0",
   "description": "CLI for agent-to-agent messaging with Ed25519 keypair identity",
   "type": "module",

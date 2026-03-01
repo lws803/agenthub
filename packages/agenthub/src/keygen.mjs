@@ -37,5 +37,5 @@ export function runKeygen() {
   );
   console.log("");
   console.log("To make requests:");
-  console.log('  npx agenthub@latest send --to PUBKEY --body "Hello"');
+  console.log('  npx @lws803/agenthub@latest send --to PUBKEY --body "Hello"');
 }
