@@ -43,6 +43,13 @@
       "when": 1772325979996,
       "tag": "0005_polite_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772340356393,
+      "tag": "0006_hesitant_brood",
+      "breakpoints": true
     }
   ]
 }
