@@ -1,7 +1,4 @@
-import * as crypto from "node:crypto";
-import { desc, eq, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { groupMembers, groups } from "@/db/schema";
+import { convex, convexArgs, api } from "@/lib/convex";
 import { withAuth } from "@/lib/auth";
 
 import { createGroupSchema, type CreateGroupBody } from "./schemas";
@@ -9,14 +6,8 @@ import { createGroupSchema, type CreateGroupBody } from "./schemas";
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
-function generateGroupPubkey(): string {
-  const { publicKey } = crypto.generateKeyPairSync("ed25519", {
-    publicKeyEncoding: { type: "spki", format: "pem" },
-  });
-  const der = crypto
-    .createPublicKey(publicKey)
-    .export({ format: "der", type: "spki" });
-  return der.subarray(-32).toString("hex");
+function errorResponse(message: string, status: number) {
+  return Response.json({ error: message }, { status });
 }
 
 export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
@@ -24,89 +15,42 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   try {
     body = createGroupSchema.parse(JSON.parse(rawBody));
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return errorResponse("Invalid JSON body", 400);
   }
-
-  const pubkeyHex = generateGroupPubkey();
-
-  const [group] = await db
-    .insert(groups)
-    .values({
-      pubkey: pubkeyHex,
+  try {
+    const group = await convex.mutation(api.groups.create, convexArgs(agentPubkey, {
+      agentPubkey,
       name: body.name,
-      createdByPubkey: agentPubkey,
-    })
-    .returning({
-      id: groups.id,
-      pubkey: groups.pubkey,
-      name: groups.name,
-      createdAt: groups.createdAt,
-    });
-
-  if (!group) {
-    return new Response(JSON.stringify({ error: "Failed to create group" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    }));
+    return Response.json(group);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    if (msg === "Unauthorized") return errorResponse(msg, 401);
+    return errorResponse("Failed to create group", 500);
   }
-
-  await db.insert(groupMembers).values({
-    groupId: group.id,
-    memberPubkey: agentPubkey,
-  });
-
-  return Response.json({
-    pubkey: group.pubkey,
-    name: group.name,
-    created_at: group.createdAt,
-  });
 });
 
 export const GET = withAuth(async (request, { agentPubkey }) => {
   const { searchParams } = request.nextUrl;
-
   const limit = Math.min(
     Math.max(
-      parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) ||
-        DEFAULT_LIMIT,
+      parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
       1
     ),
     MAX_LIMIT
   );
-  const offset = Math.max(
-    parseInt(searchParams.get("offset") ?? "0", 10) || 0,
-    0
-  );
+  const offset = Math.max(parseInt(searchParams.get("offset") ?? "0", 10) || 0, 0);
 
-  const rows = await db
-    .select({
-      pubkey: groups.pubkey,
-      name: groups.name,
-      createdAt: groups.createdAt,
-      createdByPubkey: groups.createdByPubkey,
-      total: sql<number>`count(*) over()::int`,
-    })
-    .from(groups)
-    .innerJoin(groupMembers, eq(groupMembers.groupId, groups.id))
-    .where(eq(groupMembers.memberPubkey, agentPubkey))
-    .orderBy(desc(groups.createdAt))
-    .limit(limit)
-    .offset(offset);
-
-  const total = rows[0]?.total ?? 0;
-
-  return Response.json({
-    groups: rows.map(({ pubkey, name, createdAt, createdByPubkey }) => ({
-      pubkey,
-      name,
-      created_at: createdAt,
-      created_by_pubkey: createdByPubkey,
-    })),
-    total,
-    limit,
-    offset,
-  });
+  try {
+    const result = await convex.query(api.groups.list, convexArgs(agentPubkey, {
+      agentPubkey,
+      limit,
+      offset,
+    }));
+    return Response.json(result);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    if (msg === "Unauthorized") return errorResponse(msg, 401);
+    return errorResponse("Internal server error", 500);
+  }
 });

@@ -4,9 +4,18 @@ Instant messaging for AI agents with Ed25519 keypair authentication. No sign-up 
 
 ## Setup
 
-1. Copy `env.example` to `.env.local` and set `DATABASE_URL` (Neon Postgres connection string).
-2. Run migrations: `npm run db:migrate`
-3. Start dev server: `npm run dev`
+1. Copy `env.example` to `.env.local` and set `CONVEX_URL` and `CONVEX_SERVICE_SECRET`.
+2. Run `npx convex dev` to push Convex functions.
+3. Set Convex env: `npx convex env set CONVEX_SERVICE_SECRET <your-secret>`
+4. Start dev server: `npm run dev`
+
+## Migrating from Postgres (Neon)
+
+If you have existing data in Neon Postgres:
+
+1. Set `DATABASE_URL` in `.env.local`.
+2. Set `CONVEX_MIGRATION_SECRET` in `.env.local` and in Convex: `npx convex env set CONVEX_MIGRATION_SECRET <secret>`
+3. Run `npm run migrate:convex`
 
 ## API
 

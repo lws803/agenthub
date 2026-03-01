@@ -1,6 +1,4 @@
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { agents } from "@/db/schema";
+import { convex, convexArgs, api } from "@/lib/convex";
 import { withAuth } from "@/lib/auth";
 
 import {
@@ -10,24 +8,26 @@ import {
   type PatchAgentBody,
 } from "./schemas";
 
+function jsonResponse(body: unknown, status = 200) {
+  return Response.json(body, { status });
+}
+
+function errorResponse(message: string, status: number) {
+  return jsonResponse({ error: message }, status);
+}
+
 export const GET = withAuth(async (_, { agentPubkey }) => {
-  const [agent] = await db
-    .select({
-      pubkey: agents.pubkey,
-      name: agents.name,
-    })
-    .from(agents)
-    .where(eq(agents.pubkey, agentPubkey))
-    .limit(1);
-
-  if (!agent) {
-    return new Response(JSON.stringify({ error: "Agent profile not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
+  try {
+    const agent = await convex.query(api.agents.getMe, convexArgs(agentPubkey, { agentPubkey }));
+    if (!agent) {
+      return errorResponse("Agent profile not found", 404);
+    }
+    return jsonResponse(agent);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    if (msg === "Unauthorized") return errorResponse(msg, 401);
+    return errorResponse("Internal server error", 500);
   }
-
-  return Response.json(agent);
 });
 
 export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
@@ -35,50 +35,22 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   try {
     body = createAgentSchema.parse(JSON.parse(rawBody));
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return errorResponse("Invalid JSON body", 400);
   }
-
-  const [existing] = await db
-    .select({ id: agents.id })
-    .from(agents)
-    .where(eq(agents.pubkey, agentPubkey))
-    .limit(1);
-
-  if (existing) {
-    return new Response(
-      JSON.stringify({ error: "Agent profile already exists for this pubkey" }),
-      {
-        status: 409,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
-
-  const [agent] = await db
-    .insert(agents)
-    .values({
-      pubkey: agentPubkey,
+  try {
+    const agent = await convex.mutation(api.agents.create, convexArgs(agentPubkey, {
+      agentPubkey,
       name: body.name,
-    })
-    .returning({
-      pubkey: agents.pubkey,
-      name: agents.name,
-    });
-
-  if (!agent) {
-    return new Response(
-      JSON.stringify({ error: "Failed to create agent profile" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    }));
+    return jsonResponse(agent);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    if (msg === "Unauthorized") return errorResponse(msg, 401);
+    if (msg === "Agent profile already exists for this pubkey") {
+      return errorResponse(msg, 409);
+    }
+    return errorResponse("Internal server error", 500);
   }
-
-  return Response.json(agent);
 });
 
 export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
@@ -86,43 +58,30 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
   try {
     body = patchAgentSchema.parse(JSON.parse(rawBody));
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return errorResponse("Invalid JSON body", 400);
   }
-
-  const [agent] = await db
-    .update(agents)
-    .set({ name: body.name })
-    .where(eq(agents.pubkey, agentPubkey))
-    .returning({
-      pubkey: agents.pubkey,
-      name: agents.name,
-    });
-
-  if (!agent) {
-    return new Response(JSON.stringify({ error: "Agent profile not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
+  try {
+    const agent = await convex.mutation(api.agents.update, convexArgs(agentPubkey, {
+      agentPubkey,
+      name: body.name,
+    }));
+    return jsonResponse(agent);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    if (msg === "Unauthorized") return errorResponse(msg, 401);
+    if (msg === "Agent profile not found") return errorResponse(msg, 404);
+    return errorResponse("Internal server error", 500);
   }
-
-  return Response.json(agent);
 });
 
 export const DELETE = withAuth(async (_, { agentPubkey }) => {
-  const deleted = await db
-    .delete(agents)
-    .where(eq(agents.pubkey, agentPubkey))
-    .returning({ id: agents.id });
-
-  if (deleted.length === 0) {
-    return new Response(JSON.stringify({ error: "Agent profile not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
+  try {
+    await convex.mutation(api.agents.remove, convexArgs(agentPubkey, { agentPubkey }));
+    return new Response(null, { status: 204 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    if (msg === "Unauthorized") return errorResponse(msg, 401);
+    if (msg === "Agent profile not found") return errorResponse(msg, 404);
+    return errorResponse("Internal server error", 500);
   }
-
-  return new Response(null, { status: 204 });
 });

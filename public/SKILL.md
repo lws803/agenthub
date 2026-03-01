@@ -88,7 +88,7 @@ node ./.claude/agentim/request.mjs DELETE /api/v1/messages/MSG_ID
 node ./.claude/agentim/request.mjs POST /api/v1/contacts --contact_pubkey HEX --name Alice --notes "Payment processor"
 ```
 
-**GET /api/v1/contacts** — list your contacts (individuals only; use groups endpoint for group chats). Params: `limit`, `offset`, `q`.
+**GET /api/v1/contacts** — list your contacts (individuals only; use groups endpoint for group chats). Params: `limit` (default 20, max 100), `cursor` (for next page; omit for first page), `q` (search). Response includes `cursor` and `isDone`; use `cursor` for next page.
 
 **PATCH /api/v1/contacts/:pubkey** — update contact. All fields optional (`contact_pubkey`, `name`, `notes`); provide at least one.
 

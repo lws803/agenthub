@@ -1,98 +1,54 @@
-import { and, desc, eq, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { groupMembers, groups } from "@/db/schema";
+import { convex, convexArgs, api } from "@/lib/convex";
 import { withAuth } from "@/lib/auth";
-import { resolveAgentNames } from "@/lib/agent-names";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
-export const GET = withAuth(async (request, { agentPubkey, params }) => {
-  const pubKey = params?.pubkey;
-  if (!pubKey) {
-    return new Response(JSON.stringify({ error: "Group pubkey required" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+function errorResponse(message: string, status: number) {
+  return Response.json({ error: message }, { status });
+}
 
+export const GET = withAuth(async (request, { agentPubkey, params }) => {
+  const pubkey = params?.pubkey;
+  if (!pubkey) {
+    return errorResponse("Group pubkey required", 400);
+  }
   const { searchParams } = request.nextUrl;
   const limit = Math.min(
     Math.max(
-      parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) ||
-        DEFAULT_LIMIT,
+      parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
       1
     ),
     MAX_LIMIT
   );
-  const offset = Math.max(
-    parseInt(searchParams.get("offset") ?? "0", 10) || 0,
-    0
-  );
+  const offset = Math.max(parseInt(searchParams.get("offset") ?? "0", 10) || 0, 0);
 
-  const [group] = await db
-    .select({ id: groups.id, createdByPubkey: groups.createdByPubkey })
-    .from(groups)
-    .where(eq(groups.pubkey, pubKey))
-    .limit(1);
-
-  if (!group) {
-    return new Response(JSON.stringify({ error: "Group not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
+  try {
+    const result = await convex.query(api.groupMembers.list, convexArgs(agentPubkey, {
+      agentPubkey,
+      groupPubkey: pubkey,
+      limit,
+      offset,
+    }));
+    const nameResult = await convex.query(api.agentNames.resolveNames, convexArgs(agentPubkey, {
+      viewerPubkey: agentPubkey,
+      pubkeys: result.members.map((m) => m.member_pubkey),
+    }));
+    const members = result.members.map((m) => ({
+      ...m,
+      member_name: nameResult[m.member_pubkey],
+    }));
+    return Response.json({
+      members,
+      total: result.total,
+      limit: result.limit,
+      offset: result.offset,
     });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    if (msg === "Unauthorized") return errorResponse(msg, 401);
+    if (msg === "Group not found") return errorResponse(msg, 404);
+    if (msg === "Not a group member") return errorResponse(msg, 403);
+    return errorResponse("Internal server error", 500);
   }
-
-  const [callerMembership] = await db
-    .select()
-    .from(groupMembers)
-    .where(
-      and(
-        eq(groupMembers.groupId, group.id),
-        eq(groupMembers.memberPubkey, agentPubkey)
-      )
-    )
-    .limit(1);
-
-  if (!callerMembership) {
-    return new Response(JSON.stringify({ error: "Not a group member" }), {
-      status: 403,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const rows = await db
-    .select({
-      memberPubkey: groupMembers.memberPubkey,
-      joinedAt: groupMembers.joinedAt,
-    })
-    .from(groupMembers)
-    .where(eq(groupMembers.groupId, group.id))
-    .orderBy(desc(groupMembers.joinedAt))
-    .limit(limit)
-    .offset(offset);
-
-  const countResult = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(groupMembers)
-    .where(eq(groupMembers.groupId, group.id));
-
-  const total = countResult[0]?.count ?? 0;
-  const memberPubkeys = rows.map((row) => row.memberPubkey);
-  const memberNameByPubkey = await resolveAgentNames(
-    agentPubkey,
-    memberPubkeys
-  );
-
-  return Response.json({
-    members: rows.map((m) => ({
-      member_pubkey: m.memberPubkey,
-      member_name: memberNameByPubkey[m.memberPubkey],
-      joined_at: m.joinedAt,
-      is_owner: m.memberPubkey === group.createdByPubkey,
-    })),
-    total,
-    limit,
-    offset,
-  });
 });
