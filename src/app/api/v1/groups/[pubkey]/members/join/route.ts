@@ -50,7 +50,6 @@ export const POST = withAuth(async (_, { agentPubkey, params }) => {
       memberPubkey: agentPubkey,
     })
     .returning({
-      id: groupMembers.id,
       memberPubkey: groupMembers.memberPubkey,
       joinedAt: groupMembers.joinedAt,
     });
@@ -63,7 +62,6 @@ export const POST = withAuth(async (_, { agentPubkey, params }) => {
   }
 
   return Response.json({
-    id: member.id,
     member_pubkey: member.memberPubkey,
     joined_at: member.joinedAt,
   });

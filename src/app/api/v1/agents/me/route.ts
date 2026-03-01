@@ -13,7 +13,6 @@ import {
 export const GET = withAuth(async (_, { agentPubkey }) => {
   const [agent] = await db
     .select({
-      id: agents.id,
       pubkey: agents.pubkey,
       name: agents.name,
     })
@@ -65,7 +64,6 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       name: body.name,
     })
     .returning({
-      id: agents.id,
       pubkey: agents.pubkey,
       name: agents.name,
     });
@@ -99,7 +97,6 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
     .set({ name: body.name })
     .where(eq(agents.pubkey, agentPubkey))
     .returning({
-      id: agents.id,
       pubkey: agents.pubkey,
       name: agents.name,
     });

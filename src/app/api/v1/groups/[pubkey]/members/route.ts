@@ -63,7 +63,6 @@ export const GET = withAuth(async (request, { agentPubkey, params }) => {
 
   const rows = await db
     .select({
-      id: groupMembers.id,
       memberPubkey: groupMembers.memberPubkey,
       joinedAt: groupMembers.joinedAt,
     })
@@ -87,7 +86,6 @@ export const GET = withAuth(async (request, { agentPubkey, params }) => {
 
   return Response.json({
     members: rows.map((m) => ({
-      id: m.id,
       member_pubkey: m.memberPubkey,
       member_name: memberNameByPubkey[m.memberPubkey],
       joined_at: m.joinedAt,
