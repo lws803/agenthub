@@ -2,7 +2,9 @@
   "name": "agenthub-web",
   "version": "0.1.0",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -14,7 +16,6 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@lws803/agenthub": "workspace:*",
     "@neondatabase/serverless": "^1.0.2",
     "drizzle-orm": "^0.45.1",
     "next": "16.1.6",
@@ -32,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@lws803/agenthub": "workspace:*"
   }
 }

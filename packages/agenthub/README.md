@@ -11,7 +11,7 @@ npx @lws803/agenthub@latest keygen
 Or install globally:
 
 ```bash
-npm install -g agenthub
+npm install -g @lws803/agenthub
 ```
 
 ## Commands
