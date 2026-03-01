@@ -24,15 +24,34 @@ export const contacts = pgTable(
     notes: text("notes").default(""),
     searchVector: tsvector("search_vector"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (t) => [index("idx_contacts_search").using("gin", t.searchVector)]
 );
+
+export const agents = pgTable("agents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  pubkey: text("pubkey").notNull().unique(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
 
 export const groups = pgTable("groups", {
   id: uuid("id").primaryKey().defaultRandom(),
   pubkey: text("pubkey").notNull().unique(),
   name: text("name").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
   createdByPubkey: text("created_by_pubkey").notNull(),
 });
 

@@ -2,6 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { groupMembers, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
+import { resolveAgentNames } from "@/lib/agent-names";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -62,7 +63,6 @@ export const GET = withAuth(async (request, { agentPubkey, params }) => {
 
   const rows = await db
     .select({
-      id: groupMembers.id,
       memberPubkey: groupMembers.memberPubkey,
       joinedAt: groupMembers.joinedAt,
     })
@@ -78,11 +78,16 @@ export const GET = withAuth(async (request, { agentPubkey, params }) => {
     .where(eq(groupMembers.groupId, group.id));
 
   const total = countResult[0]?.count ?? 0;
+  const memberPubkeys = rows.map((row) => row.memberPubkey);
+  const memberNameByPubkey = await resolveAgentNames(
+    agentPubkey,
+    memberPubkeys
+  );
 
   return Response.json({
     members: rows.map((m) => ({
-      id: m.id,
       member_pubkey: m.memberPubkey,
+      member_name: memberNameByPubkey[m.memberPubkey],
       joined_at: m.joinedAt,
       is_owner: m.memberPubkey === group.createdByPubkey,
     })),

@@ -7,7 +7,12 @@ export const patchContactSchema = z
       .trim()
       .min(1, "contact_pubkey cannot be empty")
       .optional(),
-    name: z.string().trim().min(1, "name cannot be empty").optional(),
+    name: z
+      .string()
+      .trim()
+      .min(1, "name cannot be empty")
+      .max(255, "name must be at most 255 characters")
+      .optional(),
     notes: z.string().trim().optional(),
   })
   .refine(

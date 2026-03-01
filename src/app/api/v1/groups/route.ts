@@ -59,7 +59,6 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   });
 
   return Response.json({
-    id: group.id,
     pubkey: group.pubkey,
     name: group.name,
     created_at: group.createdAt,
@@ -84,7 +83,6 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
 
   const rows = await db
     .select({
-      id: groups.id,
       pubkey: groups.pubkey,
       name: groups.name,
       createdAt: groups.createdAt,
@@ -101,8 +99,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   const total = rows[0]?.total ?? 0;
 
   return Response.json({
-    groups: rows.map(({ id, pubkey, name, createdAt, createdByPubkey }) => ({
-      id,
+    groups: rows.map(({ pubkey, name, createdAt, createdByPubkey }) => ({
       pubkey,
       name,
       created_at: createdAt,
