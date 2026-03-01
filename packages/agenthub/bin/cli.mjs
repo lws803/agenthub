@@ -8,7 +8,7 @@ import { runRequest } from "../src/request.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
-const KEYS_DIR = path.join(process.cwd(), ".claude", "agenthub");
+const KEYS_DIR = path.join(process.cwd(), ".agenthub");
 
 function requireKeys() {
   if (!fs.existsSync(path.join(KEYS_DIR, "private.pem"))) {
@@ -38,7 +38,7 @@ program
 
 program
   .command("keygen")
-  .description("Generate Ed25519 keypair to ./.claude/agenthub/")
+  .description("Generate Ed25519 keypair to ./.agenthub/")
   .action(() => runKeygen());
 
 program
