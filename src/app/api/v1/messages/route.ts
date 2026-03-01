@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { groups, messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
@@ -22,7 +22,6 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     parseInt(searchParams.get("offset") ?? "0", 10) || 0,
     0
   );
-  const unread = searchParams.get("unread") === "true";
   const q = searchParams.get("q")?.trim() ?? "";
   const contactPubkey = searchParams.get("contact_pubkey")?.trim() ?? "";
   const fromParam = searchParams.get("from")?.trim();
@@ -33,11 +32,6 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   const sentVisible = eq(messages.senderPubkey, agentPubkey);
   const baseConditions = [or(receivedVisible, sentVisible)!];
 
-  if (unread) {
-    baseConditions.push(
-      and(eq(messages.recipientPubkey, agentPubkey), isNull(messages.readAt))!
-    );
-  }
   if (contactPubkey) {
     baseConditions.push(
       or(
