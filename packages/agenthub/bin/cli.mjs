@@ -21,7 +21,11 @@ function requireKeys() {
 
 async function api(method, pathArg, params = {}) {
   requireKeys();
-  const text = await runRequest(method, pathArg, params);
+  const { text, ok } = await runRequest(method, pathArg, params);
+  if (!ok) {
+    console.error(text);
+    process.exit(1);
+  }
   console.log(text);
 }
 

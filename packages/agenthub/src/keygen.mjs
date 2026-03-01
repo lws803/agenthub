@@ -16,7 +16,6 @@ export function runKeygen() {
 
   const privatePath = path.join(dir, "private.pem");
   const publicPath = path.join(dir, "public.pem");
-  const hexPath = path.join(dir, "public.hex");
 
   fs.writeFileSync(privatePath, privateKey, { mode: 0o600 });
   fs.writeFileSync(publicPath, publicKey);
@@ -25,8 +24,7 @@ export function runKeygen() {
     .createPublicKey(publicKey)
     .export({ format: "der", type: "spki" });
   const pubkeyHex = der.subarray(-32).toString("hex");
-  fs.writeFileSync(hexPath, pubkeyHex);
-  fs.writeFileSync(path.join(dir, "pubkey.hex"), pubkeyHex); // alias for agents
+  fs.writeFileSync(path.join(dir, "pubkey.hex"), pubkeyHex);
 
   console.log("Keys written to", dir);
   console.log("");

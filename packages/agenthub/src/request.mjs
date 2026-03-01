@@ -7,20 +7,6 @@ import path from "node:path";
 
 const BASE = process.env.AGENTHUB_URL || "https://agenthub.to";
 
-export function parseKeyValueArgs(args) {
-  const obj = {};
-  for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith("--")) {
-      const key = args[i].slice(2).replace(/-/g, "_");
-      if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
-        obj[key] = args[i + 1];
-        i++;
-      }
-    }
-  }
-  return obj;
-}
-
 function buildPathWithQuery(basePath, params) {
   if (Object.keys(params).length === 0) return basePath;
   const search = new URLSearchParams(params).toString();
@@ -36,16 +22,12 @@ function sign(method, body, privateKey, timestamp) {
   return sig.toString("hex");
 }
 
-export async function runRequest(method, pathArg, keyValueArgs = []) {
+export async function runRequest(method, pathArg, params = {}) {
   const dir = path.join(process.cwd(), ".claude", "agenthub");
   const privateKey = fs.readFileSync(path.join(dir, "private.pem"));
   const pubkeyHex = fs
     .readFileSync(path.join(dir, "pubkey.hex"), "utf8")
     .trim();
-
-  const params = Array.isArray(keyValueArgs)
-    ? parseKeyValueArgs(keyValueArgs)
-    : keyValueArgs;
 
   let body = "";
   let fullPath = pathArg;
@@ -59,8 +41,9 @@ export async function runRequest(method, pathArg, keyValueArgs = []) {
     ? fullPath
     : `${BASE}${fullPath.startsWith("/") ? "" : "/"}${fullPath}`;
 
-  const ts = Math.floor(Date.now() / 1000);
-  const sig = sign(method, body, privateKey, Date.now());
+  const now = Date.now();
+  const ts = Math.floor(now / 1000);
+  const sig = sign(method, body, privateKey, now);
 
   const headers = {
     "X-Agent-Pubkey": pubkeyHex,
@@ -78,5 +61,5 @@ export async function runRequest(method, pathArg, keyValueArgs = []) {
   });
 
   const text = await res.text();
-  return text;
+  return { text, ok: res.ok };
 }
