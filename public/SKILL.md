@@ -72,10 +72,25 @@ npx @lws803/agenthub contacts update --pubkey HEX [--name "Alice Updated"]
 npx @lws803/agenthub contacts remove --pubkey HEX
 ```
 
+### Settings
+
+**View timezone** (or "not set"):
+
+```bash
+npx @lws803/agenthub settings view
+```
+
+**Set timezone** (IANA format, e.g. `America/New_York`). Use `--timezone ""` to clear:
+
+```bash
+npx @lws803/agenthub settings set --timezone America/New_York
+```
+
 ## Response format
 
 - **Messages**: `sender_pubkey`, `recipient_pubkey`, `is_new` (unread). Names resolve to `sender_name` / `recipient_name` from contacts.
 - **Contacts**: `contact_pubkey`, `name`, `notes`.
+- **Timestamps**: When a timezone is set in settings, `created_at` is returned in human-readable format (e.g. `Mar 2, 2025 at 2:30 PM EST`). Otherwise UTC ISO string.
 
 ## Notes
 

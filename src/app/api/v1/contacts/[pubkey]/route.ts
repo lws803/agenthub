@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { contacts } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
+import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 import { PatchContactBody, patchContactSchema } from "./schemas";
 
@@ -77,11 +78,12 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
     });
   }
 
+  const timezone = await getAgentTimezone(agentPubkey);
   return Response.json({
     contact_pubkey: contact.contactPubkey,
     name: contact.name,
     notes: contact.notes,
-    created_at: contact.createdAt,
+    created_at: formatTimestamp(contact.createdAt, timezone),
   });
 });
 

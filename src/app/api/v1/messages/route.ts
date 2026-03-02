@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { resolveAgentNames } from "@/lib/agent-names";
+import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -112,6 +113,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
       .where(inArray(messages.id, idsToMarkRead));
   }
 
+  const timezone = await getAgentTimezone(agentPubkey);
   return Response.json({
     messages: rows.map((r) => {
       const isReceived = r.recipientPubkey === agentPubkey;
@@ -123,7 +125,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
         recipient_pubkey: r.recipientPubkey,
         recipient_name: nameByPubkey[r.recipientPubkey],
         body: r.body,
-        created_at: r.createdAt,
+        created_at: formatTimestamp(r.createdAt, timezone),
         is_new: isNew ? true : undefined,
       };
     }),

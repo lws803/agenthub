@@ -1,0 +1,1 @@
+ALTER TABLE "settings" ADD COLUMN "created_at" TIMESTAMP DEFAULT now() NOT NULL;

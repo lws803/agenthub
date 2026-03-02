@@ -71,6 +71,20 @@
       "when": 1772500000000,
       "tag": "0009_drop_groups_agents",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1772600000000,
+      "tag": "0010_add_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1772700000000,
+      "tag": "0011_settings_add_created_at",
+      "breakpoints": true
     }
   ]
 }

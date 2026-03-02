@@ -31,6 +31,16 @@ export const contacts = pgTable(
   (t) => [index("idx_contacts_search").using("gin", t.searchVector)]
 );
 
+export const settings = pgTable("settings", {
+  ownerPubkey: text("owner_pubkey").primaryKey(),
+  timezone: text("timezone").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
 export const messages = pgTable(
   "messages",
   {

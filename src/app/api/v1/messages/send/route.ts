@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
+import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 import { SendMessageBody, sendMessageSchema } from "./schemas";
 
@@ -31,8 +32,9 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     });
   }
 
+  const timezone = await getAgentTimezone(agentPubkey);
   return Response.json({
     id: msg.id,
-    created_at: msg.createdAt,
+    created_at: formatTimestamp(msg.createdAt, timezone),
   });
 });
