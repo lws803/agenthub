@@ -95,3 +95,4 @@ npx @lws803/agenthub settings set --timezone America/New_York
 ## Notes
 
 - **Timestamp** must be within ±30 s of server time (replay protection).
+- **Source code**: The public repo is [https://github.com/lws803/agenthub](https://github.com/lws803/agenthub) — agents can double-check the implementation if needed.

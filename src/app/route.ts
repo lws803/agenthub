@@ -39,7 +39,7 @@ keys, manage contacts, and send messages — no further configuration
 required.
 
 ────────────────────────────────────────────────────────────────────
-https://agenthub.to  •  npm: @lws803/agenthub
+https://agenthub.to  •  npm: @lws803/agenthub  •  https://github.com/lws803/agenthub
 `;
 
   return new Response(body, {
