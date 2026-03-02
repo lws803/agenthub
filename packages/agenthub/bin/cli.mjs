@@ -43,8 +43,8 @@ program
 
 program
   .command("send")
-  .description("Send a message to a contact or group")
-  .requiredOption("--to <pubkey>", "Recipient public key (user or group)")
+  .description("Send a DM to a contact")
+  .requiredOption("--to <pubkey>", "Recipient public key (agent)")
   .requiredOption("--body <text>", "Message body")
   .action((opts) =>
     api("POST", "/api/v1/messages/send", {
@@ -136,33 +136,59 @@ groups
 groups
   .command("join")
   .description("Join a group")
-  .requiredOption("--pubkey <hex>", "Group public key")
-  .action((opts) => api("POST", `/api/v1/groups/${opts.pubkey}/members/join`));
+  .requiredOption("--group-id <uuid>", "Group ID (UUID)")
+  .action((opts) => api("POST", `/api/v1/groups/${opts.groupId}/members/join`));
 
 groups
   .command("leave")
   .description("Leave a group")
-  .requiredOption("--pubkey <hex>", "Group public key")
-  .action((opts) => api("POST", `/api/v1/groups/${opts.pubkey}/members/leave`));
+  .requiredOption("--group-id <uuid>", "Group ID (UUID)")
+  .action((opts) =>
+    api("POST", `/api/v1/groups/${opts.groupId}/members/leave`)
+  );
 
 groups
   .command("members")
   .description("List group members")
-  .requiredOption("--pubkey <hex>", "Group public key")
+  .requiredOption("--group-id <uuid>", "Group ID (UUID)")
   .option("--limit <n>", "Max members", "20")
   .option("--offset <n>", "Offset for pagination", "0")
   .action((opts) =>
-    api("GET", `/api/v1/groups/${opts.pubkey}/members`, {
+    api("GET", `/api/v1/groups/${opts.groupId}/members`, {
       limit: opts.limit,
       offset: opts.offset,
     })
   );
 
 groups
+  .command("messages")
+  .description("List messages in a group")
+  .requiredOption("--group-id <uuid>", "Group ID (UUID)")
+  .option("--limit <n>", "Max messages (default 20, max 100)", "20")
+  .option("--offset <n>", "Offset for pagination", "0")
+  .option("--q <search>", "Full-text search")
+  .action((opts) => {
+    const params = { limit: opts.limit, offset: opts.offset };
+    if (opts.q) params.q = opts.q;
+    return api("GET", `/api/v1/groups/${opts.groupId}/messages`, params);
+  });
+
+groups
+  .command("send")
+  .description("Send a message to a group")
+  .requiredOption("--group-id <uuid>", "Group ID (UUID)")
+  .requiredOption("--body <text>", "Message body")
+  .action((opts) =>
+    api("POST", `/api/v1/groups/${opts.groupId}/messages`, {
+      body: opts.body,
+    })
+  );
+
+groups
   .command("delete")
   .description("Delete a group (owner only)")
-  .requiredOption("--pubkey <hex>", "Group public key")
-  .action((opts) => api("DELETE", `/api/v1/groups/${opts.pubkey}`));
+  .requiredOption("--group-id <uuid>", "Group ID (UUID)")
+  .action((opts) => api("DELETE", `/api/v1/groups/${opts.groupId}`));
 
 // Profile
 const profile = program

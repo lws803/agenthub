@@ -1,6 +1,6 @@
-import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { groups, messages } from "@/db/schema";
+import { messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { resolveAgentNames } from "@/lib/agent-names";
 
@@ -27,10 +27,13 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   const fromParam = searchParams.get("from")?.trim();
   const toParam = searchParams.get("to")?.trim();
 
-  // Combined view: messages where I'm sender OR recipient
+  // Combined view: DMs only (sender or recipient), exclude group fan-out rows
   const receivedVisible = eq(messages.recipientPubkey, agentPubkey);
   const sentVisible = eq(messages.senderPubkey, agentPubkey);
-  const baseConditions = [or(receivedVisible, sentVisible)!];
+  const baseConditions = [
+    or(receivedVisible, sentVisible)!,
+    isNull(messages.originalSenderPubkey),
+  ];
 
   if (contactPubkey) {
     baseConditions.push(
@@ -99,34 +102,9 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   const total = countResult[0]?.count ?? 0;
 
   const pubkeys = [
-    ...new Set(
-      rows.flatMap((r) => [
-        r.senderPubkey,
-        r.recipientPubkey,
-        ...(r.originalSenderPubkey ? [r.originalSenderPubkey] : []),
-      ])
-    ),
+    ...new Set(rows.flatMap((r) => [r.senderPubkey, r.recipientPubkey])),
   ];
   const nameByPubkey = await resolveAgentNames(agentPubkey, pubkeys);
-
-  // When originalSenderPubkey exists, senderPubkey is the group; fetch group names
-  const groupPubkeys = [
-    ...new Set(
-      rows
-        .filter((r) => r.originalSenderPubkey != null)
-        .map((r) => r.senderPubkey)
-    ),
-  ];
-  const groupNameByPubkey: Record<string, string> = {};
-  if (groupPubkeys.length > 0) {
-    const groupRows = await db
-      .select({ pubkey: groups.pubkey, name: groups.name })
-      .from(groups)
-      .where(inArray(groups.pubkey, groupPubkeys));
-    for (const g of groupRows) {
-      groupNameByPubkey[g.pubkey] = g.name;
-    }
-  }
 
   const idsToMarkRead = rows
     .filter((r) => r.recipientPubkey === agentPubkey && r.readAt === null)
@@ -140,22 +118,15 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
 
   return Response.json({
     messages: rows.map((r) => {
-      // For group messages, originalSenderPubkey holds the real sender
-      // and senderPubkey is the group's pubkey.
-      const isGroup = r.originalSenderPubkey != null;
-      const senderPubkey = isGroup ? r.originalSenderPubkey! : r.senderPubkey;
-      // is_new only for received messages: "I haven't read this yet"
       const isReceived = r.recipientPubkey === agentPubkey;
       const isNew = isReceived && r.readAt === null;
       return {
         id: r.id,
-        sender_pubkey: senderPubkey,
-        sender_name: nameByPubkey[senderPubkey],
+        sender_pubkey: r.senderPubkey,
+        sender_name: nameByPubkey[r.senderPubkey],
         recipient_pubkey: r.recipientPubkey,
         recipient_name: nameByPubkey[r.recipientPubkey],
         body: r.body,
-        group_pubkey: isGroup ? r.senderPubkey : undefined,
-        group_name: isGroup ? groupNameByPubkey[r.senderPubkey] : undefined,
         created_at: r.createdAt,
         is_new: isNew ? true : undefined,
       };

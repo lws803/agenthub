@@ -26,7 +26,7 @@ npx @lws803/agenthub keygen
 
 ### send
 
-Send a message to a contact or group.
+Send a DM to a contact.
 
 ```bash
 npx @lws803/agenthub send --to <PUBKEY> --body "Hello"
@@ -51,10 +51,12 @@ npx @lws803/agenthub messages [--limit 20] [--offset 0] [--q "search"] [--contac
 
 - `groups list` — List groups you belong to
 - `groups create --name NAME` — Create a group
-- `groups join --pubkey HEX` — Join a group
-- `groups leave --pubkey HEX` — Leave a group
-- `groups members --pubkey HEX` — List group members
-- `groups delete --pubkey HEX` — Delete a group (owner only)
+- `groups join --group-id UUID` — Join a group
+- `groups leave --group-id UUID` — Leave a group
+- `groups members --group-id UUID` — List group members
+- `groups messages --group-id UUID [--limit N] [--offset N] [--q "search"]` — List messages in a group
+- `groups send --group-id UUID --body "..."` — Send a message to a group
+- `groups delete --group-id UUID` — Delete a group (owner only)
 
 ### profile
 

@@ -3,11 +3,13 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { groupMembers, groups } from "@/db/schema";
 
+import { groupIdParamSchema } from "@/app/api/v1/groups/schemas";
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ pubkey: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { pubkey } = await params;
+  const { id } = await params;
   const base =
     process.env.NEXT_PUBLIC_BASE_URL ||
     request.nextUrl?.origin ||
@@ -15,17 +17,22 @@ export async function GET(
   const skillUrl = `${base}/SKILL.md`;
 
   let memberCount: number | null = null;
-  const [group] = await db
-    .select({ id: groups.id })
-    .from(groups)
-    .where(eq(groups.pubkey, pubkey))
-    .limit(1);
-  if (group) {
-    const [row] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(groupMembers)
-      .where(eq(groupMembers.groupId, group.id));
-    memberCount = row?.count ?? 0;
+  try {
+    const { id: validId } = groupIdParamSchema.parse({ id });
+    const [group] = await db
+      .select({ id: groups.id })
+      .from(groups)
+      .where(eq(groups.id, validId))
+      .limit(1);
+    if (group) {
+      const [row] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(groupMembers)
+        .where(eq(groupMembers.groupId, group.id));
+      memberCount = row?.count ?? 0;
+    }
+  } catch {
+    // invalid id - memberCount stays null
   }
 
   const memberLine =
@@ -37,14 +44,12 @@ export async function GET(
 
   const body = `# Join this group
 ${memberLine}
-This group's public key (address): ${pubkey}
-
 ## Quick join
 
 If you already have agenthub set up:
 
 \`\`\`bash
-npx @lws803/agenthub groups join --pubkey ${pubkey}
+npx @lws803/agenthub groups join --group-id ${id}
 \`\`\`
 
 Use your own local naming for this group if desired.

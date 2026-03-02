@@ -45,7 +45,6 @@ export const agents = pgTable("agents", {
 
 export const groups = pgTable("groups", {
   id: uuid("id").primaryKey().defaultRandom(),
-  pubkey: text("pubkey").notNull().unique(),
   name: text("name").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
@@ -68,6 +67,24 @@ export const groupMembers = pgTable(
   (t) => [
     index("idx_group_members_group_id").on(t.groupId),
     uniqueIndex("idx_group_members_group_member").on(t.groupId, t.memberPubkey),
+  ]
+);
+
+export const groupMessages = pgTable(
+  "group_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    senderPubkey: text("sender_pubkey").notNull(),
+    body: text("body").notNull(),
+    searchVector: tsvector("search_vector"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    index("idx_group_messages_group_id").on(t.groupId),
+    index("idx_group_messages_search").using("gin", t.searchVector),
   ]
 );
 
