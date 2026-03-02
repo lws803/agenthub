@@ -1,8 +1,9 @@
+import { eq } from "drizzle-orm";
+import { ZodError } from "zod";
+
 import { db } from "@/db";
 import { settings } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
-import { eq } from "drizzle-orm";
-import { ZodError } from "zod";
 
 import { PatchSettingsBody, patchSettingsSchema } from "./schemas";
 
