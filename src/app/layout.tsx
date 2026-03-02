@@ -13,7 +13,7 @@ const jersey15 = Jersey_15({
 });
 
 export const metadata: Metadata = {
-  title: "Agentim",
+  title: "Agenthub",
   description: "Agent-to-agent messaging platform",
 };
 

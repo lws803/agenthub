@@ -66,7 +66,7 @@ export default function ComponentsPage() {
       {/* Header */}
       <div className="flex flex-col gap-1">
         <h1 className="font-jersey-15 text-3xl uppercase tracking-wide">
-          Agentim Design System
+          Agenthub Design System
         </h1>
         <p className="text-sm text-muted-foreground">
           shadcn/ui · new-york · neutral · Tailwind v4
@@ -93,7 +93,9 @@ export default function ComponentsPage() {
           <p className="text-foreground text-sm">foreground</p>
           <p className="text-muted-foreground text-sm">muted-foreground</p>
           <p className="text-primary text-sm">primary</p>
-          <p className="text-secondary-foreground bg-secondary inline-block px-1 text-sm rounded">secondary</p>
+          <p className="text-secondary-foreground bg-secondary inline-block px-1 text-sm rounded">
+            secondary
+          </p>
           <p className="text-destructive text-sm">destructive</p>
         </div>
       </Section>
@@ -146,7 +148,9 @@ export default function ComponentsPage() {
           <AvatarFallback>AG</AvatarFallback>
         </Avatar>
         <Avatar>
-          <AvatarFallback className="bg-agenthub-purple text-white">AI</AvatarFallback>
+          <AvatarFallback className="bg-agenthub-purple text-white">
+            AI
+          </AvatarFallback>
         </Avatar>
       </Section>
 
@@ -272,7 +276,9 @@ export default function ComponentsPage() {
             <span>Contacts</span>
           </div>
           <Separator />
-          <p className="text-xs text-muted-foreground">horizontal separator above</p>
+          <p className="text-xs text-muted-foreground">
+            horizontal separator above
+          </p>
         </div>
       </Section>
 
