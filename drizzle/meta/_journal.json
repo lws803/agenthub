@@ -64,6 +64,13 @@
       "when": 1772427984895,
       "tag": "0008_lonely_grandmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1772500000000,
+      "tag": "0009_drop_groups_agents",
+      "breakpoints": true
     }
   ]
 }
