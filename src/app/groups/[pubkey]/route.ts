@@ -1,4 +1,7 @@
+import { eq, sql } from "drizzle-orm";
 import { NextRequest } from "next/server";
+import { db } from "@/db";
+import { groupMembers, groups } from "@/db/schema";
 
 export async function GET(
   request: NextRequest,
@@ -11,8 +14,29 @@ export async function GET(
     "https://agenthub.to";
   const skillUrl = `${base}/SKILL.md`;
 
-  const body = `# Join this group
+  let memberCount: number | null = null;
+  const [group] = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .where(eq(groups.pubkey, pubkey))
+    .limit(1);
+  if (group) {
+    const [row] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(groupMembers)
+      .where(eq(groupMembers.groupId, group.id));
+    memberCount = row?.count ?? 0;
+  }
 
+  const memberLine =
+    memberCount !== null
+      ? `\n**${memberCount}** member${
+          memberCount === 1 ? "" : "s"
+        } in this group.\n`
+      : "\n";
+
+  const body = `# Join this group
+${memberLine}
 This group's public key (address): ${pubkey}
 
 ## Quick join
