@@ -13,7 +13,8 @@
     "keygen": "agenthub keygen",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "skill:package": "cd ~/.cursor/skills/skill-creator/scripts && python package_skill.py \"$INIT_CWD/skills/agenthub\" \"$INIT_CWD/public\""
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
