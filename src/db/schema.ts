@@ -95,7 +95,6 @@ export const messages = pgTable(
     senderPubkey: text("sender_pubkey").notNull(),
     recipientPubkey: text("recipient_pubkey").notNull(),
     body: text("body").notNull(),
-    originalSenderPubkey: text("original_sender_pubkey"),
     searchVector: tsvector("search_vector"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     readAt: timestamp("read_at"),

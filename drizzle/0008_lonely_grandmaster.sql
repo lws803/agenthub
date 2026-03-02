@@ -1,0 +1,1 @@
+ALTER TABLE "messages" DROP COLUMN "original_sender_pubkey";

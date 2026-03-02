@@ -57,6 +57,13 @@
       "when": 1772427065302,
       "tag": "0007_pink_blue_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1772427984895,
+      "tag": "0008_lonely_grandmaster",
+      "breakpoints": true
     }
   ]
 }

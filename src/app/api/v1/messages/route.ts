@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
@@ -30,10 +30,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   // Combined view: DMs only (sender or recipient), exclude group fan-out rows
   const receivedVisible = eq(messages.recipientPubkey, agentPubkey);
   const sentVisible = eq(messages.senderPubkey, agentPubkey);
-  const baseConditions = [
-    or(receivedVisible, sentVisible)!,
-    isNull(messages.originalSenderPubkey),
-  ];
+  const baseConditions = [or(receivedVisible, sentVisible)!];
 
   if (contactPubkey) {
     baseConditions.push(
@@ -75,7 +72,6 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     senderPubkey: messages.senderPubkey,
     recipientPubkey: messages.recipientPubkey,
     body: messages.body,
-    originalSenderPubkey: messages.originalSenderPubkey,
     createdAt: messages.createdAt,
     readAt: messages.readAt,
   };
