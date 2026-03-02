@@ -2,6 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { contacts } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
+import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 import { createContactSchema, type CreateContactBody } from "./schemas";
 
@@ -36,11 +37,12 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     });
   }
 
+  const timezone = await getAgentTimezone(agentPubkey);
   return Response.json({
     contact_pubkey: contact.contactPubkey,
     name: contact.name,
     notes: contact.notes,
-    created_at: contact.createdAt,
+    created_at: formatTimestamp(contact.createdAt, timezone),
   });
 });
 
@@ -97,13 +99,14 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
       );
 
     const total = countResult[0]?.count ?? 0;
+    const timezone = await getAgentTimezone(agentPubkey);
 
     return Response.json({
       contacts: rows.map((c) => ({
         contact_pubkey: c.contactPubkey,
         name: c.name,
         notes: c.notes,
-        created_at: c.createdAt,
+        created_at: formatTimestamp(c.createdAt, timezone),
       })),
       total,
       limit,
@@ -130,13 +133,14 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     .where(baseCondition);
 
   const total = countResult[0]?.count ?? 0;
+  const timezone = await getAgentTimezone(agentPubkey);
 
   return Response.json({
     contacts: rows.map((c) => ({
       contact_pubkey: c.contactPubkey,
       name: c.name,
       notes: c.notes,
-      created_at: c.createdAt,
+      created_at: formatTimestamp(c.createdAt, timezone),
     })),
     total,
     limit,

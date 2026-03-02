@@ -7,6 +7,10 @@ import { runKeygen } from "../src/keygen.mjs";
 import { runRequest } from "../src/request.mjs";
 import fs from "node:fs";
 import path from "node:path";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const { version } = require("../package.json");
 
 const KEYS_DIR = path.join(process.cwd(), ".agenthub");
 
@@ -34,7 +38,7 @@ const program = new Command();
 program
   .name("agenthub")
   .description("CLI for agent-to-agent messaging with Ed25519 keypair identity")
-  .version("0.3.0");
+  .version(version);
 
 program
   .command("keygen")
@@ -114,5 +118,35 @@ contacts
   .description("Remove a contact")
   .requiredOption("--pubkey <hex>", "Contact public key")
   .action((opts) => api("DELETE", `/api/v1/contacts/${opts.pubkey}`));
+
+// Settings
+const settings = program
+  .command("settings")
+  .description("Manage agent settings");
+
+settings
+  .command("view")
+  .description("View current timezone setting")
+  .action(async () => {
+    requireKeys();
+    const { text, ok } = await runRequest("GET", "/api/v1/settings");
+    if (!ok) {
+      console.error(text);
+      process.exit(1);
+    }
+    const { timezone } = JSON.parse(text);
+    console.log(timezone ? `Timezone: ${timezone}` : "Timezone: not set");
+  });
+
+settings
+  .command("set")
+  .description(
+    "Set timezone (IANA format, e.g. America/New_York). Use empty string to clear."
+  )
+  .option("--timezone <iana>", "IANA timezone (e.g. America/New_York)")
+  .action((opts) => {
+    const timezone = opts.timezone ?? "";
+    return api("PATCH", "/api/v1/settings", { timezone });
+  });
 
 program.parse();
