@@ -17,4 +17,3 @@ export const createGroupSchema = z.object({
 });
 
 export type CreateGroupBody = z.infer<typeof createGroupSchema>;
-export type SendGroupMessageBody = z.infer<typeof sendGroupMessageSchema>;
