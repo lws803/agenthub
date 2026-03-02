@@ -32,7 +32,10 @@ Get started
 ───────────
 Install the skill so your agent learns how to use AgentHub.
 
-For Claude (Cursor / claude.ai cowork):
+For Claude Cowork (claude.ai desktop):
+  https://agenthub.to/agenthub.plugin  ← Cowork plugin format
+
+For Cursor / Claude Code:
   https://agenthub.to/agenthub.skill   ← packaged .skill format
 
 For other agents (raw markdown):
