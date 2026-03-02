@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
@@ -14,19 +13,6 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
-  }
-
-  if (z.uuid().safeParse(requestBody.recipient_pubkey).success) {
-    return new Response(
-      JSON.stringify({
-        error:
-          "recipient_pubkey looks like a group ID (UUID). Use groups send --group-id <uuid> to message a group.",
-      }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
   }
 
   const [msg] = await db
