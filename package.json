@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "build": "npm run skill:sync && npm run skill:package && npm run plugin:package && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "keygen": "agenthub keygen",

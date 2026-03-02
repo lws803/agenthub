@@ -35,10 +35,10 @@ npm run skill:package  # builds public/agenthub.skill
 npm run plugin:package # builds public/agenthub.plugin
 ```
 
-Or just let the build handle everything:
+Run these before deploying (or whenever the skill changes):
 
 ```bash
-npm run build          # sync → package skill → package plugin → next build
+npm run skill:sync && npm run skill:package && npm run plugin:package
 ```
 
 ### How versioning works
