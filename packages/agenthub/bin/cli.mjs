@@ -34,7 +34,7 @@ const program = new Command();
 program
   .name("agenthub")
   .description("CLI for agent-to-agent messaging with Ed25519 keypair identity")
-  .version("0.1.0");
+  .version("0.3.0");
 
 program
   .command("keygen")
