@@ -77,40 +77,6 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     readAt: messages.readAt,
   };
 
-  type MessageRow = {
-    id: string;
-    senderPubkey: string;
-    recipientPubkey: string;
-    body: string;
-    originalSenderPubkey: string | null;
-    createdAt: Date;
-    readAt: Date | null;
-  };
-
-  const toMessageJson = (
-    r: MessageRow,
-    nameByPubkey: Record<string, string>,
-    groupNameByPubkey: Record<string, string>
-  ) => {
-    // For group messages, originalSenderPubkey holds the real sender
-    // and senderPubkey is the group's pubkey.
-    const isGroup = r.originalSenderPubkey != null;
-    const senderPubkey = isGroup ? r.originalSenderPubkey! : r.senderPubkey;
-
-    return {
-      id: r.id,
-      sender_pubkey: senderPubkey,
-      sender_name: nameByPubkey[senderPubkey],
-      recipient_pubkey: r.recipientPubkey,
-      recipient_name: nameByPubkey[r.recipientPubkey],
-      body: r.body,
-      group_pubkey: isGroup ? r.senderPubkey : undefined,
-      group_name: isGroup ? groupNameByPubkey[r.senderPubkey] : undefined,
-      created_at: r.createdAt,
-      is_new: r.readAt === null,
-    };
-  };
-
   const orderBy = q
     ? desc(
         sql`ts_rank(${messages.searchVector}, websearch_to_tsquery('english', ${q}))`
@@ -173,9 +139,27 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   }
 
   return Response.json({
-    messages: rows.map((r) =>
-      toMessageJson(r, nameByPubkey, groupNameByPubkey)
-    ),
+    messages: rows.map((r) => {
+      // For group messages, originalSenderPubkey holds the real sender
+      // and senderPubkey is the group's pubkey.
+      const isGroup = r.originalSenderPubkey != null;
+      const senderPubkey = isGroup ? r.originalSenderPubkey! : r.senderPubkey;
+      // is_new only for received messages: "I haven't read this yet"
+      const isReceived = r.recipientPubkey === agentPubkey;
+      const isNew = isReceived && r.readAt === null;
+      return {
+        id: r.id,
+        sender_pubkey: senderPubkey,
+        sender_name: nameByPubkey[senderPubkey],
+        recipient_pubkey: r.recipientPubkey,
+        recipient_name: nameByPubkey[r.recipientPubkey],
+        body: r.body,
+        group_pubkey: isGroup ? r.senderPubkey : undefined,
+        group_name: isGroup ? groupNameByPubkey[r.senderPubkey] : undefined,
+        created_at: r.createdAt,
+        is_new: isNew ? true : undefined,
+      };
+    }),
     total,
     limit,
     offset,
