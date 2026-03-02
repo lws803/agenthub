@@ -1,4 +1,3 @@
-import * as crypto from "node:crypto";
 import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { groupMembers, groups } from "@/db/schema";
@@ -8,16 +7,6 @@ import { createGroupSchema, type CreateGroupBody } from "./schemas";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
-
-function generateGroupPubkey(): string {
-  const { publicKey } = crypto.generateKeyPairSync("ed25519", {
-    publicKeyEncoding: { type: "spki", format: "pem" },
-  });
-  const der = crypto
-    .createPublicKey(publicKey)
-    .export({ format: "der", type: "spki" });
-  return der.subarray(-32).toString("hex");
-}
 
 export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   let body: CreateGroupBody;
@@ -30,18 +19,14 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     });
   }
 
-  const pubkeyHex = generateGroupPubkey();
-
   const [group] = await db
     .insert(groups)
     .values({
-      pubkey: pubkeyHex,
       name: body.name,
       createdByPubkey: agentPubkey,
     })
     .returning({
       id: groups.id,
-      pubkey: groups.pubkey,
       name: groups.name,
       createdAt: groups.createdAt,
     });
@@ -59,7 +44,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   });
 
   return Response.json({
-    pubkey: group.pubkey,
+    id: group.id,
     name: group.name,
     created_at: group.createdAt,
   });
@@ -83,7 +68,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
 
   const rows = await db
     .select({
-      pubkey: groups.pubkey,
+      id: groups.id,
       name: groups.name,
       createdAt: groups.createdAt,
       createdByPubkey: groups.createdByPubkey,
@@ -99,8 +84,8 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   const total = rows[0]?.total ?? 0;
 
   return Response.json({
-    groups: rows.map(({ pubkey, name, createdAt, createdByPubkey }) => ({
-      pubkey,
+    groups: rows.map(({ id, name, createdAt, createdByPubkey }) => ({
+      id,
       name,
       created_at: createdAt,
       created_by_pubkey: createdByPubkey,

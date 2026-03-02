@@ -4,13 +4,17 @@ import { groupMembers, groups } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { resolveAgentNames } from "@/lib/agent-names";
 
+import { groupIdParamSchema } from "@/app/api/v1/groups/schemas";
+
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
 export const GET = withAuth(async (request, { agentPubkey, params }) => {
-  const pubKey = params?.pubkey;
-  if (!pubKey) {
-    return new Response(JSON.stringify({ error: "Group pubkey required" }), {
+  let id: string;
+  try {
+    ({ id } = groupIdParamSchema.parse(params ?? {}));
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid group id" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
@@ -33,7 +37,7 @@ export const GET = withAuth(async (request, { agentPubkey, params }) => {
   const [group] = await db
     .select({ id: groups.id, createdByPubkey: groups.createdByPubkey })
     .from(groups)
-    .where(eq(groups.pubkey, pubKey))
+    .where(eq(groups.id, id))
     .limit(1);
 
   if (!group) {

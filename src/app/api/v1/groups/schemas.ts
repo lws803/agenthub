@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const groupIdParamSchema = z.object({
+  id: z.uuid("Invalid group id"),
+});
+
+export const sendGroupMessageSchema = z.object({
+  body: z.string().trim().min(1, "body is required"),
+});
+
 export const createGroupSchema = z.object({
   name: z
     .string()
