@@ -106,57 +106,6 @@ Neon Auth is also embedded in the Neon JS SDK - so depending on your use case, y
 
 **CRITICAL: Always store generated secrets and key files inside the project directory — never in `/tmp`, session-scoped folders, or any ephemeral location. Agents that write keys to ephemeral paths will be unable to locate them on subsequent steps.**
 
-### Locating Existing Keys First
-
-Before generating any new secret or key pair, check whether one already exists:
-
-1. Read `.env`, `.env.local`, `.env.development.local`, and `.env.production.local` in the project root.
-2. Scan for `*.pem`, `*.key`, and `*.pub` files under `keys/`, `certs/`, or `secrets/` in the project root.
-3. Only generate a new value if none is found — never silently overwrite an existing secret.
-
-### Cookie Secret (Neon Auth / Next.js)
-
-`NEON_AUTH_COOKIE_SECRET` must be at least 32 characters. Write it directly to `.env` in a single command — do **not** capture the output and copy it manually:
-
-```bash
-echo "NEON_AUTH_COOKIE_SECRET=$(openssl rand -base64 32)" >> .env
-```
-
-### RSA / Ed25519 Key Pairs
-
-If a private/public key pair is required (e.g. for a custom JWT auth provider), generate and store it **inside the project tree**:
-
-```bash
-mkdir -p keys
-
-# Ed25519 (recommended)
-openssl genpkey -algorithm Ed25519 -out keys/private.pem
-openssl pkey -in keys/private.pem -pubout -out keys/public.pem
-
-# RSA-2048 (alternative)
-openssl genrsa -out keys/private.pem 2048
-openssl rsa -in keys/private.pem -pubout -out keys/public.pem
-```
-
-Then add the paths to `.env` and add `keys/` to `.gitignore`:
-
-```bash
-echo "PRIVATE_KEY_PATH=./keys/private.pem" >> .env
-echo "PUBLIC_KEY_PATH=./keys/public.pem" >> .env
-echo "keys/" >> .gitignore
-```
-
-### Canonical Key Locations (in priority order)
-
-| What to look for | Where to look |
-|---|---|
-| `NEON_AUTH_COOKIE_SECRET` | `.env`, `.env.local` in project root |
-| `DATABASE_URL` / `NEON_AUTH_BASE_URL` | `.env`, `.env.local` in project root |
-| Private key file | `keys/private.pem`, `certs/private.pem`, `secrets/private.pem` |
-| Public key file | `keys/public.pem`, `certs/public.pem`, `secrets/public.pem` |
-
-When referencing key files in code, always resolve paths relative to the project root using `path.resolve(process.cwd(), process.env.PRIVATE_KEY_PATH)` — not relative to the source file or a hardcoded absolute path.
-
 ## Branching
 
 Use this when the user is planning isolated environments, schema migration testing, preview deployments, or branch lifecycle automation.
