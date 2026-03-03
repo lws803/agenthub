@@ -81,9 +81,11 @@ contacts
   .option("--limit <n>", "Max contacts", "20")
   .option("--offset <n>", "Offset for pagination", "0")
   .option("--q <search>", "Search contacts")
+  .option("--blocked", "Filter to blocked contacts only")
   .action((opts) => {
     const params = { limit: opts.limit, offset: opts.offset };
     if (opts.q) params.q = opts.q;
+    if (opts.blocked) params.is_blocked = "true";
     return api("GET", "/api/v1/contacts", params);
   });
 
@@ -118,6 +120,50 @@ contacts
   .description("Remove a contact")
   .requiredOption("--pubkey <hex>", "Contact public key")
   .action((opts) => api("DELETE", `/api/v1/contacts/${opts.pubkey}`));
+
+contacts
+  .command("block")
+  .description("Block a contact (or block by pubkey if not a contact)")
+  .requiredOption("--pubkey <hex>", "Contact public key to block")
+  .action(async (opts) => {
+    requireKeys();
+    const { text, ok, status } = await runRequest(
+      "PATCH",
+      `/api/v1/contacts/${opts.pubkey}`,
+      { is_blocked: true }
+    );
+    if (ok) {
+      console.log(text);
+      return;
+    }
+    if (status === 404) {
+      const { text: postText, ok: postOk } = await runRequest(
+        "POST",
+        "/api/v1/contacts",
+        {
+          contact_pubkey: opts.pubkey,
+          name: "Blocked",
+          is_blocked: true,
+        }
+      );
+      if (!postOk) {
+        console.error(postText);
+        process.exit(1);
+      }
+      console.log(postText);
+      return;
+    }
+    console.error(text);
+    process.exit(1);
+  });
+
+contacts
+  .command("unblock")
+  .description("Unblock a contact")
+  .requiredOption("--pubkey <hex>", "Contact public key to unblock")
+  .action((opts) =>
+    api("PATCH", `/api/v1/contacts/${opts.pubkey}`, { is_blocked: false })
+  );
 
 // Settings
 const settings = program

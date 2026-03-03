@@ -61,5 +61,5 @@ export async function runRequest(method, pathArg, params = {}) {
   });
 
   const text = await res.text();
-  return { text, ok: res.ok };
+  return { text, ok: res.ok, status: res.status };
 }

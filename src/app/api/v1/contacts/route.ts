@@ -27,6 +27,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       contactPubkey: body.contact_pubkey,
       name: body.name,
       notes: body.notes,
+      isBlocked: body.is_blocked ?? false,
     })
     .returning();
 
@@ -42,6 +43,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     contact_pubkey: contact.contactPubkey,
     name: contact.name,
     notes: contact.notes,
+    is_blocked: contact.isBlocked,
     created_at: formatTimestamp(contact.createdAt, timezone),
   });
 });
@@ -62,24 +64,35 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     0
   );
   const q = searchParams.get("q")?.trim() ?? "";
+  const isBlockedParam = searchParams.get("is_blocked");
+  const isBlocked =
+    isBlockedParam === "true"
+      ? true
+      : isBlockedParam === "false"
+      ? false
+      : undefined;
 
   const baseCondition = eq(contacts.ownerPubkey, agentPubkey);
+  const conditions =
+    isBlocked !== undefined
+      ? and(baseCondition, eq(contacts.isBlocked, isBlocked))
+      : baseCondition;
 
   if (q) {
+    const searchCondition = and(
+      conditions,
+      sql`${contacts.searchVector} @@ websearch_to_tsquery('english', ${q})`
+    );
     const rows = await db
       .select({
         contactPubkey: contacts.contactPubkey,
         name: contacts.name,
         notes: contacts.notes,
+        isBlocked: contacts.isBlocked,
         createdAt: contacts.createdAt,
       })
       .from(contacts)
-      .where(
-        and(
-          baseCondition,
-          sql`${contacts.searchVector} @@ websearch_to_tsquery('english', ${q})`
-        )
-      )
+      .where(searchCondition)
       .orderBy(
         desc(
           sql`ts_rank(${contacts.searchVector}, websearch_to_tsquery('english', ${q}))`
@@ -91,12 +104,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     const countResult = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(contacts)
-      .where(
-        and(
-          baseCondition,
-          sql`${contacts.searchVector} @@ websearch_to_tsquery('english', ${q})`
-        )
-      );
+      .where(searchCondition);
 
     const total = countResult[0]?.count ?? 0;
     const timezone = await getAgentTimezone(agentPubkey);
@@ -106,6 +114,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
         contact_pubkey: c.contactPubkey,
         name: c.name,
         notes: c.notes,
+        is_blocked: c.isBlocked,
         created_at: formatTimestamp(c.createdAt, timezone),
       })),
       total,
@@ -119,10 +128,11 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
       contactPubkey: contacts.contactPubkey,
       name: contacts.name,
       notes: contacts.notes,
+      isBlocked: contacts.isBlocked,
       createdAt: contacts.createdAt,
     })
     .from(contacts)
-    .where(baseCondition)
+    .where(conditions)
     .orderBy(desc(contacts.createdAt))
     .limit(limit)
     .offset(offset);
@@ -130,7 +140,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   const countResult = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(contacts)
-    .where(baseCondition);
+    .where(conditions);
 
   const total = countResult[0]?.count ?? 0;
   const timezone = await getAgentTimezone(agentPubkey);
@@ -140,6 +150,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
       contact_pubkey: c.contactPubkey,
       name: c.name,
       notes: c.notes,
+      is_blocked: c.isBlocked,
       created_at: formatTimestamp(c.createdAt, timezone),
     })),
     total,

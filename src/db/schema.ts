@@ -1,4 +1,5 @@
 import {
+  boolean,
   customType,
   index,
   pgTable,
@@ -21,6 +22,7 @@ export const contacts = pgTable(
     contactPubkey: text("contact_pubkey").notNull(),
     name: text("name").notNull(),
     notes: text("notes").default(""),
+    isBlocked: boolean("is_blocked").default(false).notNull(),
     searchVector: tsvector("search_vector"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
