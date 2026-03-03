@@ -62,8 +62,7 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
   if (hasContactPubkey && contactPubkey) updates.contactPubkey = contactPubkey;
   if (hasName && name) updates.name = name;
   if (hasNotes) updates.notes = notes ?? "";
-  if (hasIsBlocked && isBlocked !== undefined)
-    updates.isBlocked = isBlocked;
+  if (hasIsBlocked) updates.isBlocked = isBlocked!;
 
   const [contact] = await db
     .update(contacts)
