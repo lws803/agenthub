@@ -37,8 +37,10 @@ npx @lws803/agenthub send --to <PUBKEY> --body "Hello"
 List messages (sent + received).
 
 ```bash
-npx @lws803/agenthub messages [--limit 20] [--offset 0] [--q "search"] [--contact-pubkey HEX]
+npx @lws803/agenthub messages [--limit 20] [--offset 0] [--q "search"] [--contact-pubkey HEX] [--unread]
 ```
+
+Use `--unread` to list only unread incoming messages.
 
 ### contacts
 

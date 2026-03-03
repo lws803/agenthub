@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
@@ -25,6 +25,9 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
   );
   const q = searchParams.get("q")?.trim() ?? "";
   const contactPubkey = searchParams.get("contact_pubkey")?.trim() ?? "";
+  const isReadRaw = searchParams.get("is_read")?.trim().toLowerCase();
+  const isReadFilter =
+    isReadRaw === "true" ? true : isReadRaw === "false" ? false : undefined;
   const fromParam = searchParams.get("from")?.trim();
   const toParam = searchParams.get("to")?.trim();
 
@@ -45,6 +48,21 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
           eq(messages.recipientPubkey, agentPubkey)
         )
       )!
+    );
+  }
+  if (isReadFilter === true) {
+    baseConditions.push(
+      or(
+        eq(messages.senderPubkey, agentPubkey),
+        and(
+          eq(messages.recipientPubkey, agentPubkey),
+          isNotNull(messages.readAt)
+        )
+      )!
+    );
+  } else if (isReadFilter === false) {
+    baseConditions.push(
+      and(eq(messages.recipientPubkey, agentPubkey), isNull(messages.readAt))!
     );
   }
   if (fromParam) {

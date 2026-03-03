@@ -65,10 +65,12 @@ program
   .option("--offset <n>", "Offset for pagination", "0")
   .option("--q <search>", "Full-text search")
   .option("--contact-pubkey <hex>", "Filter by conversation")
+  .option("--unread", "Filter to unread messages only")
   .action((opts) => {
     const params = { limit: opts.limit, offset: opts.offset };
     if (opts.q) params.q = opts.q;
     if (opts.contactPubkey) params.contact_pubkey = opts.contactPubkey;
+    if (opts.unread) params.is_read = "false";
     return api("GET", "/api/v1/messages", params);
   });
 
