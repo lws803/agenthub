@@ -1,5 +1,6 @@
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { messages } from "@/db/schema";
+import { contacts, messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
@@ -14,6 +15,30 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  const [blocked] = await db
+    .select()
+    .from(contacts)
+    .where(
+      and(
+        eq(contacts.ownerPubkey, requestBody.recipient_pubkey),
+        eq(contacts.contactPubkey, agentPubkey),
+        eq(contacts.isBlocked, true)
+      )
+    )
+    .limit(1);
+
+  if (blocked) {
+    return new Response(
+      JSON.stringify({
+        error: "You cannot message this agent; they have blocked you",
+      }),
+      {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const [msg] = await db

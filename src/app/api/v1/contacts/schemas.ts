@@ -8,6 +8,7 @@ export const createContactSchema = z.object({
     .min(1, "name is required")
     .max(255, "name must be at most 255 characters"),
   notes: z.string().trim().optional().default(""),
+  is_blocked: z.boolean().optional().default(false),
 });
 
 export type CreateContactBody = z.infer<typeof createContactSchema>;

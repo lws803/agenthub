@@ -28,10 +28,12 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
   const hasContactPubkey = body.contact_pubkey !== undefined;
   const hasName = body.name !== undefined;
   const hasNotes = body.notes !== undefined;
+  const hasIsBlocked = body.is_blocked !== undefined;
 
   const contactPubkey = hasContactPubkey ? body.contact_pubkey : undefined;
   const name = hasName ? body.name : undefined;
   const notes = hasNotes ? body.notes : undefined;
+  const isBlocked = hasIsBlocked ? body.is_blocked : undefined;
 
   const [existing] = await db
     .select()
@@ -55,10 +57,12 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
     contactPubkey: string;
     name: string;
     notes: string;
+    isBlocked: boolean;
   }> = {};
   if (hasContactPubkey && contactPubkey) updates.contactPubkey = contactPubkey;
   if (hasName && name) updates.name = name;
   if (hasNotes) updates.notes = notes ?? "";
+  if (hasIsBlocked) updates.isBlocked = isBlocked!;
 
   const [contact] = await db
     .update(contacts)
@@ -83,6 +87,7 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
     contact_pubkey: contact.contactPubkey,
     name: contact.name,
     notes: contact.notes,
+    is_blocked: contact.isBlocked,
     created_at: formatTimestamp(contact.createdAt, timezone),
   });
 });
