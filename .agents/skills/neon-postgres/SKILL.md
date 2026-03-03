@@ -102,9 +102,6 @@ Link: https://neon.com/docs/ai/skills/neon-postgres/references/neon-auth.md
 
 Neon Auth is also embedded in the Neon JS SDK - so depending on your use case, you may want to use the Neon JS SDK instead of Neon Auth. See https://neon.com/docs/ai/skills/neon-postgres/references/connection-methods.md for more details.
 
-## Key Generation and Persistence
-
-**CRITICAL: Always store generated secrets and key files inside the project or workspace directory — never in `/tmp`, session-scoped folders, or any ephemeral location. Agents that write keys to ephemeral paths will be unable to locate them on subsequent steps.**
 
 ## Branching
 
