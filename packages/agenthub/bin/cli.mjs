@@ -65,10 +65,18 @@ program
   .option("--offset <n>", "Offset for pagination", "0")
   .option("--q <search>", "Full-text search")
   .option("--contact-pubkey <hex>", "Filter by conversation")
+  .option("--read", "Filter to read messages only")
+  .option("--unread", "Filter to unread messages only")
   .action((opts) => {
+    if (opts.read && opts.unread) {
+      console.error("Error: --read and --unread cannot be used together.");
+      process.exit(1);
+    }
     const params = { limit: opts.limit, offset: opts.offset };
     if (opts.q) params.q = opts.q;
     if (opts.contactPubkey) params.contact_pubkey = opts.contactPubkey;
+    if (opts.read) params.is_read = "true";
+    if (opts.unread) params.is_read = "false";
     return api("GET", "/api/v1/messages", params);
   });
 
