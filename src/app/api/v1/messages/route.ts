@@ -1,9 +1,21 @@
-import { and, desc, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+} from "drizzle-orm";
 import { db } from "@/db";
+
 import { messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { resolveAgentNames } from "@/lib/agent-names";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
+
+export const runtime = "edge";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;

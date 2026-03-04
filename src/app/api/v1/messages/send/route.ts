@@ -1,10 +1,13 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
+
 import { contacts, messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 import { SendMessageBody, sendMessageSchema } from "./schemas";
+
+export const runtime = "edge";
 
 export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   let requestBody: SendMessageBody;

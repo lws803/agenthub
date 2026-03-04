@@ -1,15 +1,5 @@
+import { hex } from "@scure/base";
 import type { NextRequest } from "next/server";
-import * as crypto from "node:crypto";
-
-const ED25519_DER_PREFIX = Buffer.from("302a300506032b6570032100", "hex");
-
-function hexToDerPublicKey(hex: string): Buffer {
-  const keyBytes = Buffer.from(hex, "hex");
-  if (keyBytes.length !== 32) {
-    throw new Error("Invalid Ed25519 public key length");
-  }
-  return Buffer.concat([ED25519_DER_PREFIX, keyBytes]);
-}
 
 export type AuthResult =
   | { ok: true; pubkey: string; rawBody: string }
@@ -46,33 +36,57 @@ export async function verifyAuth(
   }
 
   const payload = rawBody + ";" + timestamp;
-  const payloadBuffer = Buffer.from(payload, "utf8");
+  const payloadBytes = new TextEncoder().encode(payload);
 
-  let signatureBuffer: Buffer;
+  let signatureBytes: Uint8Array;
   try {
-    signatureBuffer = Buffer.from(signature, "hex");
+    signatureBytes = hex.decode(signature);
   } catch {
     return { ok: false, status: 401, message: "Invalid X-Signature encoding" };
   }
 
-  let publicKey: crypto.KeyObject;
+  if (signatureBytes.length !== 64) {
+    return { ok: false, status: 401, message: "Invalid X-Signature length" };
+  }
+
+  let keyBytes: Uint8Array;
   try {
-    const derKey = hexToDerPublicKey(pubkey);
-    publicKey = crypto.createPublicKey({
-      format: "der",
-      type: "spki",
-      key: derKey,
-    });
+    keyBytes = hex.decode(pubkey);
+  } catch {
+    return {
+      ok: false,
+      status: 401,
+      message: "Invalid X-Agent-Pubkey encoding",
+    };
+  }
+
+  if (keyBytes.length !== 32) {
+    return {
+      ok: false,
+      status: 401,
+      message: "Invalid Ed25519 public key length",
+    };
+  }
+
+  let publicKey: CryptoKey;
+  try {
+    publicKey = await crypto.subtle.importKey(
+      "raw",
+      keyBytes as BufferSource,
+      { name: "Ed25519" },
+      false,
+      ["verify"]
+    );
   } catch {
     return { ok: false, status: 401, message: "Invalid X-Agent-Pubkey" };
   }
 
   try {
-    const valid = crypto.verify(
-      null,
-      payloadBuffer,
+    const valid = await crypto.subtle.verify(
+      { name: "Ed25519" },
       publicKey,
-      signatureBuffer
+      signatureBytes as BufferSource,
+      payloadBytes as BufferSource
     );
     if (!valid) {
       return { ok: false, status: 401, message: "Invalid signature" };

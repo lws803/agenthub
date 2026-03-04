@@ -7,6 +7,8 @@ import { withAuth } from "@/lib/auth";
 
 import { PatchSettingsBody, patchSettingsSchema } from "./schemas";
 
+export const runtime = "edge";
+
 export const GET = withAuth(async (_, { agentPubkey }) => {
   const [row] = await db
     .select({ timezone: settings.timezone })

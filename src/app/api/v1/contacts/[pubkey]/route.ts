@@ -1,10 +1,13 @@
 import { and, eq } from "drizzle-orm";
+
 import { db } from "@/db";
 import { contacts } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 import { PatchContactBody, patchContactSchema } from "./schemas";
+
+export const runtime = "edge";
 
 export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
   const pubkey = params?.pubkey;

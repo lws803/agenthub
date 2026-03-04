@@ -1,10 +1,13 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
+
 import { contacts } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 import { createContactSchema, type CreateContactBody } from "./schemas";
+
+export const runtime = "edge";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
