@@ -11,12 +11,15 @@ export const runtime = "edge";
 
 export const GET = withAuth(async (_, { agentPubkey }) => {
   const [row] = await db
-    .select({ timezone: settings.timezone })
+    .select({ timezone: settings.timezone, webhook_url: settings.webhookUrl })
     .from(settings)
     .where(eq(settings.ownerPubkey, agentPubkey))
     .limit(1);
 
-  return Response.json({ timezone: row?.timezone ?? null });
+  return Response.json({
+    timezone: row?.timezone ?? null,
+    webhook_url: row?.webhook_url ?? null,
+  });
 });
 
 export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
@@ -25,32 +28,54 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
     body = patchSettingsSchema.parse(JSON.parse(rawBody));
   } catch (e) {
     let message: string;
-    if (e instanceof SyntaxError) message = "Invalid JSON body";
     if (e instanceof ZodError)
-      message = e.issues.map((issue) => issue.message).join("; ");
-    message = "Invalid request body";
+      message = e.issues.map((i) => i.message).join("; ");
+    else if (e instanceof SyntaxError) message = "Invalid JSON body";
+    else message = "Invalid request body";
     return new Response(JSON.stringify({ error: message }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  if (body.timezone === "" || body.timezone === undefined) {
-    await db.delete(settings).where(eq(settings.ownerPubkey, agentPubkey));
-    return Response.json({ timezone: null });
+  const [existing] = await db
+    .select({ timezone: settings.timezone, webhook_url: settings.webhookUrl })
+    .from(settings)
+    .where(eq(settings.ownerPubkey, agentPubkey))
+    .limit(1);
+
+  // Clear timezone with no existing row: no-op
+  if (body.timezone === "" && !existing) {
+    return Response.json({ timezone: null, webhook_url: null });
   }
+
+  const hasTimezone = body.timezone !== undefined;
+  const hasWebhookUrl = body.webhook_url !== undefined;
+
+  const timezone = hasTimezone
+    ? body.timezone === ""
+      ? "UTC"
+      : body.timezone!
+    : existing?.timezone ?? "UTC";
+  const webhookUrl = hasWebhookUrl
+    ? body.webhook_url
+    : existing?.webhook_url ?? null;
 
   const [row] = await db
     .insert(settings)
     .values({
       ownerPubkey: agentPubkey,
-      timezone: body.timezone,
+      timezone,
+      webhookUrl,
     })
     .onConflictDoUpdate({
       target: settings.ownerPubkey,
-      set: { timezone: body.timezone },
+      set: { timezone, webhookUrl },
     })
-    .returning({ timezone: settings.timezone });
+    .returning({
+      timezone: settings.timezone,
+      webhook_url: settings.webhookUrl,
+    });
 
   if (!row) {
     return new Response(
@@ -62,5 +87,8 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
     );
   }
 
-  return Response.json({ timezone: row.timezone });
+  return Response.json({
+    timezone: row.timezone,
+    webhook_url: row.webhook_url ?? null,
+  });
 });

@@ -174,7 +174,7 @@ const settings = program
 
 settings
   .command("view")
-  .description("View current timezone setting")
+  .description("View current settings (timezone, webhook URL)")
   .action(async () => {
     requireKeys();
     const { text, ok } = await runRequest("GET", "/api/v1/settings");
@@ -182,19 +182,25 @@ settings
       console.error(text);
       process.exit(1);
     }
-    const { timezone } = JSON.parse(text);
+    const { timezone, webhook_url } = JSON.parse(text);
     console.log(timezone ? `Timezone: ${timezone}` : "Timezone: not set");
+    console.log(
+      webhook_url ? `Webhook URL: ${webhook_url}` : "Webhook URL: not set"
+    );
   });
 
 settings
   .command("set")
   .description(
-    "Set timezone (IANA format, e.g. America/New_York). Use empty string to clear."
+    "Set settings. Timezone: IANA format (e.g. America/New_York); empty string resets to UTC. Webhook URL: empty string clears."
   )
   .option("--timezone <iana>", "IANA timezone (e.g. America/New_York)")
+  .option("--webhook-url <url>", "Webhook URL for new message notifications")
   .action((opts) => {
-    const timezone = opts.timezone ?? "";
-    return api("PATCH", "/api/v1/settings", { timezone });
+    const params = {};
+    if (opts.timezone !== undefined) params.timezone = opts.timezone ?? "";
+    if (opts.webhookUrl !== undefined) params.webhook_url = opts.webhookUrl;
+    return api("PATCH", "/api/v1/settings", params);
   });
 
 program.parse();

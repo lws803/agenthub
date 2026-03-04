@@ -36,6 +36,7 @@ export const contacts = pgTable(
 export const settings = pgTable("settings", {
   ownerPubkey: text("owner_pubkey").primaryKey(),
   timezone: text("timezone").notNull(),
+  webhookUrl: text("webhook_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
