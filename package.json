@@ -16,8 +16,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "skill:sync": "bun scripts/sync-skill.mjs",
-    "skill:package": "cd ~/.cursor/skills/skill-creator/scripts && python package_skill.py \"$INIT_CWD/skills/agenthub\" \"$INIT_CWD/public\"",
-    "plugin:package": "cd \"$INIT_CWD/plugins\" && zip -r \"$INIT_CWD/public/agenthub.plugin\" agenthub && echo 'Packaged public/agenthub.plugin'"
+    "skill:package": "ROOT=$(pwd) && cd ~/.cursor/skills/skill-creator/scripts && python package_skill.py \"$ROOT/skills/agenthub\" \"$ROOT/public\"",
+    "plugin:package": "ROOT=$(pwd) && cd \"$ROOT/plugins\" && zip -r \"$ROOT/public/agenthub.plugin\" agenthub && echo 'Packaged public/agenthub.plugin'"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
