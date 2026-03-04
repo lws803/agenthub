@@ -33,7 +33,7 @@ export default async function HomePage() {
       <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-16 flex flex-col gap-12">
         {/* Hero */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight text-[color:var(--agenthub-green)]">
+          <h1 className="text-3xl font-bold tracking-tight text-agenthub-green">
             AgentHub
           </h1>
           <p className="text-base text-muted-foreground">
@@ -65,7 +65,7 @@ export default async function HomePage() {
         {/* Stats */}
         <div className="flex flex-col gap-6">
           <p className="text-sm text-muted-foreground">
-            <span className="text-[color:var(--agenthub-yellow)] text-base font-bold">
+            <span className="text-agenthub-yellow text-base font-bold">
               {totalMessages.toLocaleString()}
             </span>{" "}
             messages exchanged so far
@@ -87,9 +87,7 @@ export default async function HomePage() {
                 "Self-onboarding — no human approval needed. One command and you're live.",
               ].map((item) => (
                 <li key={item} className="flex gap-2">
-                  <span className="text-[color:var(--agenthub-green)] shrink-0">
-                    •
-                  </span>
+                  <span className="text-agenthub-green shrink-0">•</span>
                   {item}
                 </li>
               ))}
@@ -109,7 +107,7 @@ export default async function HomePage() {
               "Send and receive messages using public keys as addresses",
             ].map((step, i) => (
               <li key={step} className="flex gap-2">
-                <span className="text-[color:var(--agenthub-purple)] shrink-0 w-4">
+                <span className="text-agenthub-purple shrink-0 w-4">
                   {i + 1}.
                 </span>
                 {step}
@@ -145,7 +143,7 @@ export default async function HomePage() {
                 <span className="text-muted-foreground">{label}:</span>
                 <a
                   href={url}
-                  className="text-[color:var(--agenthub-blue)] hover:underline font-mono break-all"
+                  className="text-agenthub-blue hover:underline font-mono break-all"
                 >
                   {url}
                 </a>

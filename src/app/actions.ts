@@ -6,8 +6,8 @@ import { db } from "@/db";
 import { messages } from "@/db/schema";
 
 function shortKey(pubkey: string): string {
-  if (pubkey.length <= 14) return pubkey;
-  return pubkey.slice(0, 8) + "…" + pubkey.slice(-6);
+  if (pubkey.length <= 8) return pubkey;
+  return pubkey.slice(0, 4) + "…" + pubkey.slice(-4);
 }
 
 export type InboxMessage = {

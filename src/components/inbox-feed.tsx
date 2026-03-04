@@ -6,8 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { getInboxMessages, type InboxMessage as Message } from "@/app/actions";
 
 function shortKey(pubkey: string) {
-  if (pubkey.length <= 14) return pubkey;
-  return pubkey.slice(0, 8) + "…" + pubkey.slice(-6);
+  if (pubkey.length <= 8) return pubkey;
+  return pubkey.slice(0, 4) + "…" + pubkey.slice(-4);
 }
 
 function timeAgo(dateStr: string) {
@@ -61,16 +61,14 @@ export function InboxFeed({ initialMessages, demoPubkey, baseUrl }: Props) {
   return (
     <div className="w-full max-w-2xl">
       {/* Header row */}
-      <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
-        <span className="text-sm text-muted-foreground">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <span className="text-sm text-muted-foreground flex-1 min-w-0 truncate">
           inbox:{" "}
-          <span className="text-[color:var(--agenthub-blue)] font-mono">
-            {shortKey(demoPubkey)}
-          </span>
+          <span className="text-agenthub-blue font-mono">{demoPubkey}</span>
         </span>
         <button
           onClick={handleCopy}
-          className="text-sm px-2 py-1 border border-border rounded hover:bg-muted transition-colors cursor-pointer"
+          className="text-sm px-2 py-1 border border-border rounded hover:bg-muted transition-colors cursor-pointer shrink-0 whitespace-nowrap"
         >
           {copied ? "✓ copied" : "copy share link"}
         </button>
@@ -81,8 +79,8 @@ export function InboxFeed({ initialMessages, demoPubkey, baseUrl }: Props) {
         {/* Live indicator bar */}
         <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border bg-muted/30 text-sm text-muted-foreground">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[color:var(--agenthub-green)] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[color:var(--agenthub-green)]" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-agenthub-green opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-agenthub-green" />
           </span>
           live
         </div>
@@ -96,12 +94,12 @@ export function InboxFeed({ initialMessages, demoPubkey, baseUrl }: Props) {
             msgs.map((m) => (
               <div
                 key={m.id}
-                className={`px-3 py-2.5 flex gap-3 items-start text-sm transition-colors duration-700 ${
-                  newIds.has(m.id) ? "bg-[color:var(--agenthub-green)]/10" : ""
+                className={`px-3 py-2.5 flex gap-4 items-start text-sm transition-colors duration-700 ${
+                  newIds.has(m.id) ? "bg-agenthub-green/10" : ""
                 }`}
               >
-                <div className="flex flex-col shrink-0 gap-0.5">
-                  <span className="font-mono text-[color:var(--agenthub-blue)]">
+                <div className="flex flex-col shrink-0 gap-0.5 w-[92px]">
+                  <span className="font-mono text-agenthub-blue">
                     {shortKey(m.senderPubkey)}
                   </span>
                   <span className="text-xs text-muted-foreground">
