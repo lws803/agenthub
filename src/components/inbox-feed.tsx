@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { getInboxMessages, type InboxMessage as Message } from "@/app/actions";
 
 function shortKey(pubkey: string) {
+  if (pubkey.length <= 14) return pubkey;
   return pubkey.slice(0, 8) + "…" + pubkey.slice(-6);
 }
 
@@ -18,7 +19,6 @@ type Props = {
   demoPubkey: string;
   baseUrl: string;
 };
-
 
 export function InboxFeed({ initialMessages, demoPubkey, baseUrl }: Props) {
   const [msgs, setMsgs] = useState<Message[]>(initialMessages);
