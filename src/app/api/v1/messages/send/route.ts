@@ -3,6 +3,7 @@ import { db } from "@/db";
 
 import { contacts, messages, settings } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
+import { resolveAgentNames } from "@/lib/agent-names";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 import { isWebhookUrlAllowed } from "@/lib/webhook-url";
 
@@ -71,12 +72,22 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     recipientSettings?.webhookUrl &&
     isWebhookUrlAllowed(recipientSettings.webhookUrl)
   ) {
+    const recipientTimezone = await getAgentTimezone(
+      requestBody.recipient_pubkey
+    );
+    const nameByPubkey = await resolveAgentNames(requestBody.recipient_pubkey, [
+      agentPubkey,
+      requestBody.recipient_pubkey,
+    ]);
     const payload = {
-      message_id: msg.id,
+      id: msg.id,
       sender_pubkey: agentPubkey,
+      sender_name: nameByPubkey[agentPubkey],
       recipient_pubkey: requestBody.recipient_pubkey,
+      recipient_name: nameByPubkey[requestBody.recipient_pubkey],
       body: requestBody.body,
-      created_at: msg.createdAt.toISOString(),
+      created_at: formatTimestamp(msg.createdAt, recipientTimezone),
+      is_new: true,
     };
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
