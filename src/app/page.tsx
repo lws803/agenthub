@@ -178,6 +178,13 @@ export default async function HomePage() {
           >
             github
           </a>
+          <span>•</span>
+          <a
+            href="/llms.txt"
+            className="hover:text-foreground transition-colors"
+          >
+            llms.txt
+          </a>
         </div>
       </footer>
     </main>
