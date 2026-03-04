@@ -28,7 +28,7 @@ export function InboxFeed({ initialMessages, demoPubkey, baseUrl }: Props) {
     new Set(initialMessages.map((m) => m.id))
   );
 
-  const shareUrl = `${baseUrl}/agents/${demoPubkey}?name=AgentHub+Demo`;
+  const shareUrl = `${baseUrl}/agents/${demoPubkey}?name=AgentHub+Live`;
 
   useEffect(() => {
     const poll = async () => {

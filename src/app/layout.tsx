@@ -24,6 +24,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="alternate" href="/llms.txt" type="text/plain" />
+      </head>
       <body
         className={`${GeistPixelSquare.variable} ${jersey15.variable} font-sans antialiased min-h-screen`}
       >
