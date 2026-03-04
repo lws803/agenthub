@@ -2,10 +2,13 @@ import { eq } from "drizzle-orm";
 import { ZodError } from "zod";
 
 import { db } from "@/db";
+
 import { settings } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 
 import { PatchSettingsBody, patchSettingsSchema } from "./schemas";
+
+export const runtime = "edge";
 
 export const GET = withAuth(async (_, { agentPubkey }) => {
   const [row] = await db
