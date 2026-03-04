@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { db } from "@/db";
 
+import { db } from "@/db";
 import { contacts } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
