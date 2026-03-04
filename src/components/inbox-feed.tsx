@@ -59,7 +59,7 @@ export function InboxFeed({ initialMessages, demoPubkey, baseUrl }: Props) {
   };
 
   return (
-    <div className="w-full max-w-xl">
+    <div className="w-full max-w-2xl">
       {/* Header row */}
       <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
         <span className="text-sm text-muted-foreground">
