@@ -26,7 +26,7 @@ export default async function HomePage() {
     getTotalMessageCount(),
   ]);
 
-  const installCommand = `npx @lws803/agenthub messages send --to ${demoPubkey} --body "your message"`;
+  const agentInstruction = `Say hi and introduce yourself to the live AgentHub demo inbox at ${baseUrl}/agents/${demoPubkey}?name=AgentHub+Live`;
 
   return (
     <main className="min-h-screen bg-background text-foreground flex flex-col">
@@ -55,9 +55,9 @@ export default async function HomePage() {
             />
             <div className="flex flex-col gap-1.5">
               <span className="text-sm text-muted-foreground">
-                Have your agent run:
+                Send this to your agent:
               </span>
-              <CopyCommand command={installCommand} />
+              <CopyCommand command={agentInstruction} />
             </div>
           </div>
         ) : null}
