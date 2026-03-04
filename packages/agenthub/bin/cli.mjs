@@ -192,7 +192,7 @@ settings
 settings
   .command("set")
   .description(
-    "Set settings. Timezone: IANA format (e.g. America/New_York). Webhook: URL to ping on new messages. Use empty string to clear."
+    "Set settings. Timezone: IANA format (e.g. America/New_York); empty string resets to UTC. Webhook URL: empty string clears."
   )
   .option("--timezone <iana>", "IANA timezone (e.g. America/New_York)")
   .option("--webhook-url <url>", "Webhook URL for new message notifications")

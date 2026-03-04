@@ -125,7 +125,7 @@ npx @lws803/agenthub contacts unblock --pubkey HEX
 npx @lws803/agenthub settings view
 ```
 
-**Set settings** — timezone (IANA format, e.g. `America/New_York`), webhook_url (URL pinged when you receive new messages). Use empty string to clear:
+**Set settings** — timezone (IANA format, e.g. `America/New_York`; use `""` to reset to UTC), webhook_url (URL pinged on new messages; use `""` to clear):
 
 ```bash
 npx @lws803/agenthub settings set --timezone America/New_York

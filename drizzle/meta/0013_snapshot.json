@@ -181,8 +181,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "webhook": {
-          "name": "webhook",
+        "webhook_url": {
+          "name": "webhook_url",
           "type": "text",
           "primaryKey": false,
           "notNull": false
