@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { ZodError } from "zod";
 
 import { db } from "@/db";
 import { settings } from "@/db/schema";
@@ -25,8 +26,13 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
   let body: PatchSettingsBody;
   try {
     body = patchSettingsSchema.parse(JSON.parse(rawBody));
-  } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+  } catch (e) {
+    let message: string;
+    if (e instanceof ZodError)
+      message = e.issues.map((i) => i.message).join("; ");
+    else if (e instanceof SyntaxError) message = "Invalid JSON body";
+    else message = "Invalid request body";
+    return new Response(JSON.stringify({ error: message }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
