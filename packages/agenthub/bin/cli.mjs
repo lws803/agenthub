@@ -199,8 +199,7 @@ settings
   .action((opts) => {
     const params = {};
     if (opts.timezone !== undefined) params.timezone = opts.timezone ?? "";
-    if (opts.webhookUrl !== undefined)
-      params.webhook_url = opts.webhookUrl ?? "";
+    if (opts.webhookUrl !== undefined) params.webhook_url = opts.webhookUrl;
     return api("PATCH", "/api/v1/settings", params);
   });
 

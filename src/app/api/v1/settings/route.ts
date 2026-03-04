@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { ZodError } from "zod";
 
 import { db } from "@/db";
 import { settings } from "@/db/schema";
@@ -26,21 +25,11 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
   let body: PatchSettingsBody;
   try {
     body = patchSettingsSchema.parse(JSON.parse(rawBody));
-  } catch (e) {
-    let message: string;
-    if (e instanceof SyntaxError) message = "Invalid JSON body";
-    if (e instanceof ZodError)
-      message = e.issues.map((issue) => issue.message).join("; ");
-    message = "Invalid request body";
-    return new Response(JSON.stringify({ error: message }), {
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
-  }
-
-  if (body.timezone === "") {
-    await db.delete(settings).where(eq(settings.ownerPubkey, agentPubkey));
-    return Response.json({ timezone: null, webhook_url: null });
   }
 
   const [existing] = await db
@@ -49,11 +38,22 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
     .where(eq(settings.ownerPubkey, agentPubkey))
     .limit(1);
 
-  const timezone = body.timezone ?? existing?.timezone ?? "UTC";
-  const webhookUrl =
-    body.webhook_url !== undefined
-      ? body.webhook_url
-      : existing?.webhook_url ?? null;
+  // Clear timezone with no existing row: no-op
+  if (body.timezone === "" && !existing) {
+    return Response.json({ timezone: null, webhook_url: null });
+  }
+
+  const hasTimezone = body.timezone !== undefined;
+  const hasWebhookUrl = body.webhook_url !== undefined;
+
+  const timezone = hasTimezone
+    ? body.timezone === ""
+      ? "UTC"
+      : body.timezone!
+    : existing?.timezone ?? "UTC";
+  const webhookUrl = hasWebhookUrl
+    ? body.webhook_url
+    : existing?.webhook_url ?? null;
 
   const [row] = await db
     .insert(settings)

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { contacts, messages, settings } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
+import { isWebhookUrlAllowed } from "@/lib/webhook-url";
 
 import { SendMessageBody, sendMessageSchema } from "./schemas";
 
@@ -66,7 +67,10 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     .where(eq(settings.ownerPubkey, requestBody.recipient_pubkey))
     .limit(1);
 
-  if (recipientSettings?.webhookUrl) {
+  if (
+    recipientSettings?.webhookUrl &&
+    isWebhookUrlAllowed(recipientSettings.webhookUrl)
+  ) {
     const payload = {
       message_id: msg.id,
       sender_pubkey: agentPubkey,
