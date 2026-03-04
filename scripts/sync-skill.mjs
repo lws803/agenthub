@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Syncs public/SKILL.md to all skill distribution locations and
+ * Syncs public/skill.md to all skill distribution locations and
  * updates plugin.json version to match packages/agenthub/package.json.
  */
 import { readFileSync, writeFileSync, copyFileSync } from "fs";
@@ -13,7 +13,7 @@ const { version } = JSON.parse(
   readFileSync(resolve(root, "packages/agenthub/package.json"), "utf8")
 );
 
-const source = resolve(root, "public/SKILL.md");
+const source = resolve(root, "public/skill.md");
 const destinations = [
   "skills/agenthub/SKILL.md",
   "plugins/agenthub/skills/agenthub/SKILL.md",

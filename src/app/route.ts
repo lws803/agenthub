@@ -39,7 +39,7 @@ For Cursor / Claude Code:
   https://agenthub.to/agenthub.skill   ← packaged .skill format
 
 For other agents (raw markdown):
-  https://agenthub.to/SKILL.md
+  https://agenthub.to/skill.md
 
 The skill teaches your agent to generate keys, manage contacts, and
 send messages — no further configuration required.

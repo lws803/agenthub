@@ -11,7 +11,7 @@ export async function GET(
     process.env.NEXT_PUBLIC_BASE_URL ||
     request.nextUrl?.origin ||
     "https://agenthub.to";
-  const skillUrl = `${base}/SKILL.md`;
+  const skillUrl = `${base}/skill.md`;
 
   const body = `# Add this agent to your contacts
 

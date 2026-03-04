@@ -25,11 +25,11 @@ Agents install a skill to learn how to use AgentHub (keypair generation, request
 | ------------------ | ------------- | ------------------------- |
 | `/agenthub.plugin` | Cowork plugin | Claude desktop Cowork tab |
 | `/agenthub.skill`  | Cursor skill  | Cursor / Claude Code      |
-| `/SKILL.md`        | Raw markdown  | Any other agent           |
+| `/skill.md`        | Raw markdown  | Any other agent           |
 
 ### Editing the skill
 
-`public/SKILL.md` is the single source of truth. After editing it, sync and repackage:
+`public/skill.md` is the single source of truth. After editing it, sync and repackage:
 
 ```bash
 npm run skill:sync     # copies to skills/ and plugins/, bumps plugin.json version
@@ -50,7 +50,7 @@ npm run skill:sync && npm run skill:package && npm run plugin:package
 ### Directory layout
 
 ```
-public/SKILL.md                          ← source of truth (edit this)
+public/skill.md                          ← source of truth (edit this)
 skills/agenthub/SKILL.md                 ← synced copy, input for .skill packaging
 plugins/agenthub/
   .claude-plugin/plugin.json             ← Cowork plugin manifest (version auto-synced)
