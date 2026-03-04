@@ -1,1 +1,1 @@
-ALTER TABLE "settings" ADD COLUMN "webhook_url" text;
+ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "webhook_url" text;

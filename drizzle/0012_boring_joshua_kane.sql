@@ -1,1 +1,1 @@
-ALTER TABLE "contacts" ADD COLUMN "is_blocked" boolean DEFAULT false NOT NULL;
+ALTER TABLE "contacts" ADD COLUMN IF NOT EXISTS "is_blocked" boolean DEFAULT false NOT NULL;
