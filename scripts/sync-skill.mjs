@@ -15,8 +15,8 @@ const { version } = JSON.parse(
 
 const source = resolve(root, "public/skill.md");
 const destinations = [
-  "skills/agenthub/SKILL.md",
-  "plugins/agenthub/skills/agenthub/SKILL.md",
+  "skills/agenthub/skill.md",
+  "plugins/agenthub/skills/agenthub/skill.md",
 ];
 
 for (const dest of destinations) {
