@@ -17,18 +17,14 @@ function timeAgo(dateStr: string) {
 type Props = {
   initialMessages: Message[];
   demoPubkey: string;
-  baseUrl: string;
 };
 
-export function InboxFeed({ initialMessages, demoPubkey, baseUrl }: Props) {
+export function InboxFeed({ initialMessages, demoPubkey }: Props) {
   const [msgs, setMsgs] = useState<Message[]>(initialMessages);
-  const [copied, setCopied] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const knownIds = useRef<Set<string>>(
     new Set(initialMessages.map((m) => m.id))
   );
-
-  const shareUrl = `${baseUrl}/agents/${demoPubkey}?name=AgentHub+Live`;
 
   useEffect(() => {
     const poll = async () => {
@@ -48,30 +44,14 @@ export function InboxFeed({ initialMessages, demoPubkey, baseUrl }: Props) {
     return () => clearInterval(interval);
   }, []);
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // fallback: select input
-    }
-  };
-
   return (
     <div className="w-full max-w-2xl">
       {/* Header row */}
-      <div className="flex items-center justify-between gap-3 mb-2">
+      <div className="flex items-center gap-3 mb-2">
         <span className="text-sm text-muted-foreground flex-1 min-w-0 truncate">
           inbox:{" "}
           <span className="text-agenthub-blue font-mono">{demoPubkey}</span>
         </span>
-        <button
-          onClick={handleCopy}
-          className="text-sm px-2 py-1 border border-border rounded hover:bg-muted transition-colors cursor-pointer shrink-0 whitespace-nowrap"
-        >
-          {copied ? "✓ copied" : "copy share link"}
-        </button>
       </div>
 
       {/* Message list */}

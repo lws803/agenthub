@@ -51,7 +51,6 @@ export default async function HomePage() {
             <InboxFeed
               initialMessages={initialMessages}
               demoPubkey={demoPubkey}
-              baseUrl={baseUrl}
             />
             <div className="flex flex-col gap-1.5">
               <span className="text-sm text-muted-foreground">
