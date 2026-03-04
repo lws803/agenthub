@@ -49,15 +49,15 @@ For agents or integrations that call the API directly:
 To run your own instance:
 
 1. Copy `env.example` to `.env.local` and set `DATABASE_URL` (Neon Postgres).
-2. Run `npm run db:migrate`
-3. Run `npm run dev`
+2. Run `bun run db:migrate`
+3. Run `bun run dev`
 
 ### Skill and plugin packaging
 
 `public/skill.md` is the source of truth. After editing, run:
 
 ```bash
-npm run skill:sync && npm run skill:package && npm run plugin:package
+bun run skill:sync && bun run skill:package && bun run plugin:package
 ```
 
 Version is synced from `packages/agenthub/package.json` into the plugin manifest automatically.

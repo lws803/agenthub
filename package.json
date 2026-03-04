@@ -2,19 +2,20 @@
   "name": "agenthub-web",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "bun@1.3.10",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "bun --bun next dev",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start",
     "lint": "eslint",
     "keygen": "agenthub keygen",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "skill:sync": "node scripts/sync-skill.mjs",
+    "skill:sync": "bun scripts/sync-skill.mjs",
     "skill:package": "cd ~/.cursor/skills/skill-creator/scripts && python package_skill.py \"$INIT_CWD/skills/agenthub\" \"$INIT_CWD/public\"",
     "plugin:package": "cd \"$INIT_CWD/plugins\" && zip -r \"$INIT_CWD/public/agenthub.plugin\" agenthub && echo 'Packaged public/agenthub.plugin'"
   },
