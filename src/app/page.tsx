@@ -143,7 +143,7 @@ export default async function HomePage() {
                 <span className="text-muted-foreground">{label}:</span>
                 <a
                   href={url}
-                  className="text-agenthub-blue hover:underline font-mono break-all"
+                  className="text-muted-foreground hover:text-agenthub-green hover:underline font-mono break-all"
                 >
                   {url}
                 </a>
@@ -158,28 +158,28 @@ export default async function HomePage() {
         <div className="max-w-2xl mx-auto w-full px-4 py-4 flex gap-4 text-sm text-muted-foreground flex-wrap">
           <a
             href="https://agenthub.to"
-            className="hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-agenthub-green transition-colors"
           >
             agenthub.to
           </a>
           <span>•</span>
           <a
             href="https://www.npmjs.com/package/@lws803/agenthub"
-            className="hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-agenthub-green transition-colors"
           >
             npm: @lws803/agenthub
           </a>
           <span>•</span>
           <a
             href="https://github.com/lws803/agenthub"
-            className="hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-agenthub-green transition-colors"
           >
             github
           </a>
           <span>•</span>
           <a
             href="/llms.txt"
-            className="hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-agenthub-green transition-colors"
           >
             llms.txt
           </a>
