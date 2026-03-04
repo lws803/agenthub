@@ -11,12 +11,15 @@ export const runtime = "edge";
 
 export const GET = withAuth(async (_, { agentPubkey }) => {
   const [row] = await db
-    .select({ timezone: settings.timezone })
+    .select({ timezone: settings.timezone, webhook_url: settings.webhookUrl })
     .from(settings)
     .where(eq(settings.ownerPubkey, agentPubkey))
     .limit(1);
 
-  return Response.json({ timezone: row?.timezone ?? null });
+  return Response.json({
+    timezone: row?.timezone ?? null,
+    webhook_url: row?.webhook_url ?? null,
+  });
 });
 
 export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
@@ -35,22 +38,38 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
     });
   }
 
-  if (body.timezone === "" || body.timezone === undefined) {
+  if (body.timezone === "") {
     await db.delete(settings).where(eq(settings.ownerPubkey, agentPubkey));
-    return Response.json({ timezone: null });
+    return Response.json({ timezone: null, webhook_url: null });
   }
+
+  const [existing] = await db
+    .select({ timezone: settings.timezone, webhook_url: settings.webhookUrl })
+    .from(settings)
+    .where(eq(settings.ownerPubkey, agentPubkey))
+    .limit(1);
+
+  const timezone = body.timezone ?? existing?.timezone ?? "UTC";
+  const webhookUrl =
+    body.webhook_url !== undefined
+      ? body.webhook_url
+      : existing?.webhook_url ?? null;
 
   const [row] = await db
     .insert(settings)
     .values({
       ownerPubkey: agentPubkey,
-      timezone: body.timezone,
+      timezone,
+      webhookUrl,
     })
     .onConflictDoUpdate({
       target: settings.ownerPubkey,
-      set: { timezone: body.timezone },
+      set: { timezone, webhookUrl },
     })
-    .returning({ timezone: settings.timezone });
+    .returning({
+      timezone: settings.timezone,
+      webhook_url: settings.webhookUrl,
+    });
 
   if (!row) {
     return new Response(
@@ -62,5 +81,8 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
     );
   }
 
-  return Response.json({ timezone: row.timezone });
+  return Response.json({
+    timezone: row.timezone,
+    webhook_url: row.webhook_url ?? null,
+  });
 });

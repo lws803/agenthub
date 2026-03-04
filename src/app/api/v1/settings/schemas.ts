@@ -18,6 +18,7 @@ export const patchSettingsSchema = z.object({
       (v) => v === undefined || v === "" || isValidIanaTimezone(v!),
       "Invalid IANA timezone (e.g. America/New_York)"
     ),
+  webhook_url: z.url().optional(),
 });
 
 export type PatchSettingsBody = z.infer<typeof patchSettingsSchema>;

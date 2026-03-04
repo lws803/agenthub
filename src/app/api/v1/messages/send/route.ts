@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 
-import { contacts, messages } from "@/db/schema";
+import { contacts, messages, settings } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
@@ -58,6 +58,32 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  const [recipientSettings] = await db
+    .select({ webhookUrl: settings.webhookUrl })
+    .from(settings)
+    .where(eq(settings.ownerPubkey, requestBody.recipient_pubkey))
+    .limit(1);
+
+  if (recipientSettings?.webhookUrl) {
+    const payload = {
+      message_id: msg.id,
+      sender_pubkey: agentPubkey,
+      recipient_pubkey: requestBody.recipient_pubkey,
+      body: requestBody.body,
+      created_at: msg.createdAt.toISOString(),
+    };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+    void fetch(recipientSettings.webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    })
+      .finally(() => clearTimeout(timeout))
+      .catch(() => {});
   }
 
   const timezone = await getAgentTimezone(agentPubkey);
