@@ -80,10 +80,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   const webhookPromises = recipientWebhooks
     .filter((w) => isWebhookUrlAllowed(w.url))
     .map((webhook) => {
-      const wakeMode =
-        now && webhook.allowNow
-          ? ("now" as const)
-          : ("next-heartbeat" as const);
+      const wakeMode = now && webhook.allowNow ? "now" : "next-heartbeat";
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10_000);
       const cleanup = () => clearTimeout(timeout);
@@ -97,6 +94,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
         body: requestBody.body,
         created_at: formatTimestamp(msg.createdAt, recipientTimezone),
         is_new: true,
+        wake_mode: wakeMode,
       };
 
       if (webhook.type === "generic") {
