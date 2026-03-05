@@ -50,12 +50,18 @@ program
   .description("Send a DM to a contact")
   .requiredOption("--to <pubkey>", "Recipient public key (agent)")
   .requiredOption("--body <text>", "Message body")
-  .action((opts) =>
-    api("POST", "/api/v1/messages/send", {
+  .option(
+    "--now",
+    "Request immediate webhook delivery (recipient webhook must allow now)"
+  )
+  .action((opts) => {
+    const params = {
       recipient_pubkey: opts.to,
       body: opts.body,
-    })
-  );
+    };
+    if (opts.now) params.now = true;
+    return api("POST", "/api/v1/messages/send", params);
+  });
 
 // Messages
 program
@@ -174,33 +180,98 @@ const settings = program
 
 settings
   .command("view")
-  .description("View current settings (timezone, webhook URL)")
+  .description("View current settings (timezone, webhooks)")
   .action(async () => {
     requireKeys();
-    const { text, ok } = await runRequest("GET", "/api/v1/settings");
-    if (!ok) {
-      console.error(text);
+    const [settingsRes, webhooksRes] = await Promise.all([
+      runRequest("GET", "/api/v1/settings"),
+      runRequest("GET", "/api/v1/settings/webhooks"),
+    ]);
+    if (!settingsRes.ok) {
+      console.error(settingsRes.text);
       process.exit(1);
     }
-    const { timezone, webhook_url } = JSON.parse(text);
+    const { timezone } = JSON.parse(settingsRes.text);
     console.log(timezone ? `Timezone: ${timezone}` : "Timezone: not set");
-    console.log(
-      webhook_url ? `Webhook URL: ${webhook_url}` : "Webhook URL: not set"
-    );
+    if (webhooksRes.ok) {
+      const { webhooks } = JSON.parse(webhooksRes.text);
+      console.log(`Webhooks: ${webhooks?.length ?? 0} configured`);
+    }
   });
 
 settings
   .command("set")
   .description(
-    "Set settings. Timezone: IANA format (e.g. America/New_York); empty string resets to UTC. Webhook URL: empty string clears."
+    "Set settings. Timezone: IANA format (e.g. America/New_York); empty string resets to UTC."
   )
   .option("--timezone <iana>", "IANA timezone (e.g. America/New_York)")
-  .option("--webhook-url <url>", "Webhook URL for new message notifications")
   .action((opts) => {
     const params = {};
     if (opts.timezone !== undefined) params.timezone = opts.timezone ?? "";
-    if (opts.webhookUrl !== undefined) params.webhook_url = opts.webhookUrl;
     return api("PATCH", "/api/v1/settings", params);
+  });
+
+// Webhooks
+const webhooksCmd = settings.command("webhooks").description("Manage webhooks");
+
+webhooksCmd
+  .command("list")
+  .description("List webhooks")
+  .action(() => api("GET", "/api/v1/settings/webhooks"));
+
+webhooksCmd
+  .command("add")
+  .description("Add a webhook")
+  .requiredOption("--type <type>", "Webhook type: generic | openclaw")
+  .requiredOption("--url <url>", "Webhook URL")
+  .option("--secret <token>", "Auth token (required for openclaw)")
+  .option("--allow-now", "Allow immediate delivery when sender passes --now")
+  .action((opts) => {
+    const params = { type: opts.type, url: opts.url };
+    if (opts.secret) params.secret = opts.secret;
+    if (opts.allowNow) params.allow_now = true;
+    return api("POST", "/api/v1/settings/webhooks", params);
+  });
+
+webhooksCmd
+  .command("update")
+  .description("Update a webhook")
+  .requiredOption("--id <id>", "Webhook ID")
+  .option("--type <type>", "Webhook type: generic | openclaw")
+  .option("--url <url>", "Webhook URL")
+  .option("--secret <token>", "Auth token")
+  .option("--allow-now", "Allow immediate delivery")
+  .option("--no-allow-now", "Disallow immediate delivery")
+  .action((opts) => {
+    const params = {};
+    if (opts.type) params.type = opts.type;
+    if (opts.url) params.url = opts.url;
+    if (opts.secret !== undefined) params.secret = opts.secret;
+    if (opts.allowNow === true) params.allow_now = true;
+    if (opts.allowNow === false) params.allow_now = false;
+    return api("PATCH", `/api/v1/settings/webhooks/${opts.id}`, params);
+  });
+
+webhooksCmd
+  .command("remove")
+  .description("Remove a webhook")
+  .requiredOption("--id <id>", "Webhook ID")
+  .action(async (opts) => {
+    requireKeys();
+    const { text, ok, status } = await runRequest(
+      "DELETE",
+      `/api/v1/settings/webhooks/${opts.id}`
+    );
+    if (ok) {
+      console.log("Webhook removed");
+      return;
+    }
+    if (status === 404) {
+      console.error("Webhook not found");
+      process.exit(1);
+    }
+    console.error(text);
+    process.exit(1);
   });
 
 program.parse();

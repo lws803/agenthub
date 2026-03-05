@@ -11,14 +11,13 @@ export const runtime = "edge";
 
 export const GET = withAuth(async (_, { agentPubkey }) => {
   const [row] = await db
-    .select({ timezone: settings.timezone, webhook_url: settings.webhookUrl })
+    .select({ timezone: settings.timezone })
     .from(settings)
     .where(eq(settings.ownerPubkey, agentPubkey))
     .limit(1);
 
   return Response.json({
     timezone: row?.timezone ?? null,
-    webhook_url: row?.webhook_url ?? null,
   });
 });
 
@@ -39,42 +38,35 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
   }
 
   const [existing] = await db
-    .select({ timezone: settings.timezone, webhook_url: settings.webhookUrl })
+    .select({ timezone: settings.timezone })
     .from(settings)
     .where(eq(settings.ownerPubkey, agentPubkey))
     .limit(1);
 
   // Clear timezone with no existing row: no-op
   if (body.timezone === "" && !existing) {
-    return Response.json({ timezone: null, webhook_url: null });
+    return Response.json({ timezone: null });
   }
 
   const hasTimezone = body.timezone !== undefined;
-  const hasWebhookUrl = body.webhook_url !== undefined;
-
   const timezone = hasTimezone
     ? body.timezone === ""
       ? "UTC"
       : body.timezone!
     : existing?.timezone ?? "UTC";
-  const webhookUrl = hasWebhookUrl
-    ? body.webhook_url
-    : existing?.webhook_url ?? null;
 
   const [row] = await db
     .insert(settings)
     .values({
       ownerPubkey: agentPubkey,
       timezone,
-      webhookUrl,
     })
     .onConflictDoUpdate({
       target: settings.ownerPubkey,
-      set: { timezone, webhookUrl },
+      set: { timezone },
     })
     .returning({
       timezone: settings.timezone,
-      webhook_url: settings.webhookUrl,
     });
 
   if (!row) {
@@ -87,8 +79,5 @@ export const PATCH = withAuth(async (_, { agentPubkey, rawBody }) => {
     );
   }
 
-  return Response.json({
-    timezone: row.timezone,
-    webhook_url: row.webhook_url ?? null,
-  });
+  return Response.json({ timezone: row.timezone });
 });

@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 
-import { contacts, messages, settings } from "@/db/schema";
+import { contacts, messages, webhooks } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { resolveAgentNames } from "@/lib/agent-names";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
@@ -62,43 +62,70 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     });
   }
 
-  const [recipientSettings] = await db
-    .select({ webhookUrl: settings.webhookUrl })
-    .from(settings)
-    .where(eq(settings.ownerPubkey, requestBody.recipient_pubkey))
-    .limit(1);
+  const now = requestBody.now ?? false;
+  const recipientWebhooks = await db
+    .select()
+    .from(webhooks)
+    .where(eq(webhooks.ownerPubkey, requestBody.recipient_pubkey));
 
-  if (
-    recipientSettings?.webhookUrl &&
-    isWebhookUrlAllowed(recipientSettings.webhookUrl)
-  ) {
-    const recipientTimezone = await getAgentTimezone(
-      requestBody.recipient_pubkey
-    );
-    const nameByPubkey = await resolveAgentNames(requestBody.recipient_pubkey, [
-      agentPubkey,
-      requestBody.recipient_pubkey,
-    ]);
-    const payload = {
-      id: msg.id,
-      sender_pubkey: agentPubkey,
-      sender_name: nameByPubkey[agentPubkey],
-      recipient_pubkey: requestBody.recipient_pubkey,
-      recipient_name: nameByPubkey[requestBody.recipient_pubkey],
-      body: requestBody.body,
-      created_at: formatTimestamp(msg.createdAt, recipientTimezone),
-      is_new: true,
-    };
+  const recipientTimezone = await getAgentTimezone(
+    requestBody.recipient_pubkey
+  );
+  const nameByPubkey = await resolveAgentNames(requestBody.recipient_pubkey, [
+    agentPubkey,
+    requestBody.recipient_pubkey,
+  ]);
+
+  for (const webhook of recipientWebhooks) {
+    if (!isWebhookUrlAllowed(webhook.url)) continue;
+
+    const wakeMode =
+      now && webhook.allowNow ? ("now" as const) : ("next-heartbeat" as const);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
-    void fetch(recipientSettings.webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    })
-      .finally(() => clearTimeout(timeout))
-      .catch(() => {});
+
+    if (webhook.type === "generic") {
+      const payload = {
+        id: msg.id,
+        sender_pubkey: agentPubkey,
+        sender_name: nameByPubkey[agentPubkey],
+        recipient_pubkey: requestBody.recipient_pubkey,
+        recipient_name: nameByPubkey[requestBody.recipient_pubkey],
+        body: requestBody.body,
+        created_at: formatTimestamp(msg.createdAt, recipientTimezone),
+        is_new: true,
+      };
+      void fetch(webhook.url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      })
+        .finally(() => clearTimeout(timeout))
+        .catch(() => {});
+    }
+    if (webhook.type === "openclaw") {
+      const senderName = nameByPubkey[agentPubkey] ?? "Unknown";
+      const message = `New DM from ${senderName} on AgentHub: ${requestBody.body}`;
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (webhook.secret) {
+        headers["Authorization"] = `Bearer ${webhook.secret}`;
+      }
+      void fetch(webhook.url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          message,
+          name: "AgentHub",
+          wakeMode,
+        }),
+        signal: controller.signal,
+      })
+        .finally(() => clearTimeout(timeout))
+        .catch(() => {});
+    }
   }
 
   const timezone = await getAgentTimezone(agentPubkey);

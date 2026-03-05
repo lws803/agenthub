@@ -1,0 +1,97 @@
+import { eq } from "drizzle-orm";
+import { ZodError } from "zod";
+
+import { db } from "@/db";
+import { settings, webhooks } from "@/db/schema";
+import { withAuth } from "@/lib/auth";
+import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
+
+import { CreateWebhookBody, createWebhookSchema } from "./schemas";
+
+export const runtime = "edge";
+
+export const GET = withAuth(async (_, { agentPubkey }) => {
+  const rows = await db
+    .select({
+      id: webhooks.id,
+      type: webhooks.type,
+      url: webhooks.url,
+      allow_now: webhooks.allowNow,
+      createdAt: webhooks.createdAt,
+      updatedAt: webhooks.updatedAt,
+    })
+    .from(webhooks)
+    .where(eq(webhooks.ownerPubkey, agentPubkey));
+
+  const timezone = await getAgentTimezone(agentPubkey);
+  return Response.json({
+    webhooks: rows.map((w) => ({
+      id: w.id,
+      type: w.type,
+      url: w.url,
+      allow_now: w.allow_now,
+      created_at: formatTimestamp(w.createdAt, timezone),
+      updated_at: formatTimestamp(w.updatedAt, timezone),
+    })),
+  });
+});
+
+export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
+  let body: CreateWebhookBody;
+  try {
+    body = createWebhookSchema.parse(JSON.parse(rawBody));
+  } catch (e) {
+    let message: string;
+    if (e instanceof ZodError)
+      message = e.issues.map((i) => i.message).join("; ");
+    else if (e instanceof SyntaxError) message = "Invalid JSON body";
+    else message = "Invalid request body";
+    return new Response(JSON.stringify({ error: message }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  await db
+    .insert(settings)
+    .values({
+      ownerPubkey: agentPubkey,
+      timezone: "UTC",
+    })
+    .onConflictDoNothing();
+
+  const [webhook] = await db
+    .insert(webhooks)
+    .values({
+      ownerPubkey: agentPubkey,
+      type: body.type,
+      url: body.url,
+      secret: body.secret ?? null,
+      allowNow: body.allow_now ?? false,
+    })
+    .returning({
+      id: webhooks.id,
+      type: webhooks.type,
+      url: webhooks.url,
+      allow_now: webhooks.allowNow,
+      createdAt: webhooks.createdAt,
+      updatedAt: webhooks.updatedAt,
+    });
+
+  if (!webhook) {
+    return new Response(JSON.stringify({ error: "Failed to create webhook" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const timezone = await getAgentTimezone(agentPubkey);
+  return Response.json({
+    id: webhook.id,
+    type: webhook.type,
+    url: webhook.url,
+    allow_now: webhook.allow_now,
+    created_at: formatTimestamp(webhook.createdAt, timezone),
+    updated_at: formatTimestamp(webhook.updatedAt, timezone),
+  });
+});
