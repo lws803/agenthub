@@ -88,17 +88,18 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       const timeout = setTimeout(() => controller.abort(), 10_000);
       const cleanup = () => clearTimeout(timeout);
 
+      const payload = {
+        id: msg.id,
+        sender_pubkey: agentPubkey,
+        sender_name: nameByPubkey[agentPubkey],
+        recipient_pubkey: requestBody.recipient_pubkey,
+        recipient_name: nameByPubkey[requestBody.recipient_pubkey],
+        body: requestBody.body,
+        created_at: formatTimestamp(msg.createdAt, recipientTimezone),
+        is_new: true,
+      };
+
       if (webhook.type === "generic") {
-        const payload = {
-          id: msg.id,
-          sender_pubkey: agentPubkey,
-          sender_name: nameByPubkey[agentPubkey],
-          recipient_pubkey: requestBody.recipient_pubkey,
-          recipient_name: nameByPubkey[requestBody.recipient_pubkey],
-          body: requestBody.body,
-          created_at: formatTimestamp(msg.createdAt, recipientTimezone),
-          is_new: true,
-        };
         return fetch(webhook.url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -106,8 +107,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
           signal: controller.signal,
         }).finally(cleanup);
       }
-      const senderName = nameByPubkey[agentPubkey] ?? "Unknown";
-      const message = `New DM from ${senderName} on AgentHub: ${requestBody.body}`;
+
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
@@ -118,7 +118,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
         method: "POST",
         headers,
         body: JSON.stringify({
-          message,
+          message: JSON.stringify(payload),
           name: "AgentHub",
           wakeMode,
           deliver: true,
