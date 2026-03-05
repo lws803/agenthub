@@ -7,7 +7,6 @@ const webhookTypeSchema = z.enum(["generic", "openclaw"]);
 export const createWebhookSchema = z.object({
   type: webhookTypeSchema,
   url: z
-    .string()
     .url("Invalid URL")
     .refine(
       (v) => isWebhookUrlAllowed(v),

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { ZodError } from "zod";
 
 import { db } from "@/db";
@@ -7,6 +7,8 @@ import { withAuth } from "@/lib/auth";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 import { CreateWebhookBody, createWebhookSchema } from "./schemas";
+
+const MAX_WEBHOOKS_PER_USER = 10;
 
 export const runtime = "edge";
 
@@ -50,6 +52,23 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(webhooks)
+    .where(eq(webhooks.ownerPubkey, agentPubkey));
+
+  if ((count ?? 0) >= MAX_WEBHOOKS_PER_USER) {
+    return new Response(
+      JSON.stringify({
+        error: `Webhook limit reached. You can have up to ${MAX_WEBHOOKS_PER_USER} webhooks. Delete an existing webhook to add a new one.`,
+      }),
+      {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   await db

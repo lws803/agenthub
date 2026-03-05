@@ -56,7 +56,8 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
   }> = {};
   if (body.type !== undefined) updates.type = body.type;
   if (body.url !== undefined) updates.url = body.url;
-  if (body.secret !== undefined) updates.secret = body.secret ?? null;
+  if (body.secret !== undefined)
+    updates.secret = body.secret === "" ? null : body.secret;
   if (body.allow_now !== undefined) updates.allowNow = body.allow_now;
 
   if (Object.keys(updates).length === 0) {
@@ -124,7 +125,9 @@ export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
     });
   }
 
-  await db.delete(webhooks).where(eq(webhooks.id, id));
+  await db
+    .delete(webhooks)
+    .where(and(eq(webhooks.id, id), eq(webhooks.ownerPubkey, agentPubkey)));
 
   return new Response(null, { status: 204 });
 });
