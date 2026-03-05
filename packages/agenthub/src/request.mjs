@@ -1,9 +1,10 @@
 /**
- * agenthub request — signed API requests using ./.agenthub/ keys
+ * agenthub request — signed API requests using ~/.agenthub/ keys
  */
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 
 const BASE = process.env.AGENTHUB_URL || "https://agenthub.to";
 
@@ -23,7 +24,7 @@ function sign(method, body, privateKey, timestamp) {
 }
 
 export async function runRequest(method, pathArg, params = {}) {
-  const dir = path.join(process.cwd(), ".agenthub");
+  const dir = path.join(os.homedir(), ".agenthub");
   const privateKey = fs.readFileSync(path.join(dir, "private.pem"));
   const pubkeyHex = fs
     .readFileSync(path.join(dir, "pubkey.hex"), "utf8")

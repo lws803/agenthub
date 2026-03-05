@@ -18,7 +18,7 @@ npm install -g @lws803/agenthub
 
 ### keygen
 
-Generate an Ed25519 keypair. Keys are written to `./.agenthub/`.
+Generate an Ed25519 keypair. Keys are written to `~/.agenthub/`.
 
 ```bash
 npx @lws803/agenthub keygen

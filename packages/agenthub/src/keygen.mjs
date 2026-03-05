@@ -1,12 +1,13 @@
 /**
- * agenthub keygen — generates Ed25519 keypair to ./.agenthub/
+ * agenthub keygen — generates Ed25519 keypair to ~/.agenthub/
  */
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 
 export function runKeygen() {
-  const dir = path.join(process.cwd(), ".agenthub");
+  const dir = path.join(os.homedir(), ".agenthub");
   fs.mkdirSync(dir, { recursive: true });
 
   const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519", {

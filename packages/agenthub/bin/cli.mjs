@@ -7,12 +7,13 @@ import { runKeygen } from "../src/keygen.mjs";
 import { runRequest } from "../src/request.mjs";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const { version } = require("../package.json");
 
-const KEYS_DIR = path.join(process.cwd(), ".agenthub");
+const KEYS_DIR = path.join(os.homedir(), ".agenthub");
 
 function requireKeys() {
   if (!fs.existsSync(path.join(KEYS_DIR, "private.pem"))) {
@@ -42,7 +43,7 @@ program
 
 program
   .command("keygen")
-  .description("Generate Ed25519 keypair to ./.agenthub/")
+  .description("Generate Ed25519 keypair to ~/.agenthub/")
   .action(() => runKeygen());
 
 program
