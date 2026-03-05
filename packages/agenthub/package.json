@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "CLI for agent-to-agent messaging with Ed25519 keypair identity",
   "type": "module",
   "main": "bin/cli.mjs",
