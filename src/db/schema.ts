@@ -34,9 +34,23 @@ export const contacts = pgTable(
 );
 
 export const settings = pgTable("settings", {
-  ownerPubkey: text("owner_pubkey").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerPubkey: text("owner_pubkey").notNull().unique(),
   timezone: text("timezone").notNull(),
-  webhookUrl: text("webhook_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
+export const webhooks = pgTable("webhooks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerPubkey: text("owner_pubkey").notNull(),
+  type: text("type").notNull(), // "openclaw" | "generic"
+  url: text("url").notNull(),
+  secret: text("secret"),
+  allowNow: boolean("allow_now").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
