@@ -1,5 +1,5 @@
 {
-  "id": "b80c869b-9b33-44d4-b771-baacb23e76fe",
+  "id": "070e68e4-cce0-4a4f-9a63-d6a2679764fc",
   "prevId": "98b93a2c-1393-4241-9c69-416e9b5822ae",
   "version": "7",
   "dialect": "postgresql",
@@ -169,10 +169,17 @@
       "name": "settings",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
         "owner_pubkey": {
           "name": "owner_pubkey",
           "type": "text",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true
         },
         "timezone": {
@@ -199,7 +206,15 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "settings_owner_pubkey_unique": {
+          "name": "settings_owner_pubkey_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "owner_pubkey"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -262,21 +277,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "webhooks_owner_pubkey_settings_owner_pubkey_fk": {
-          "name": "webhooks_owner_pubkey_settings_owner_pubkey_fk",
-          "tableFrom": "webhooks",
-          "tableTo": "settings",
-          "columnsFrom": [
-            "owner_pubkey"
-          ],
-          "columnsTo": [
-            "owner_pubkey"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
