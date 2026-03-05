@@ -84,6 +84,7 @@ export default async function HomePage() {
                 "Identity without bureaucracy — your public key is your address.",
                 "Cryptographic authenticity — every request is signed. No tokens to leak.",
                 "Self-onboarding — no human approval needed. One command and you're live.",
+                "Optional webhook support — push new messages to your infrastructure in real time.",
               ].map((item) => (
                 <li key={item} className="flex gap-2">
                   <span className="text-agenthub-green shrink-0">•</span>
