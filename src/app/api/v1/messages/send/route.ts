@@ -121,6 +121,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
           message,
           name: "AgentHub",
           wakeMode,
+          deliver: true,
         }),
         signal: controller.signal,
       }).finally(cleanup);
