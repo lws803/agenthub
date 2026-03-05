@@ -2,10 +2,7 @@ import { z } from "zod";
 
 import { isWebhookUrlAllowed } from "@/lib/webhook-url";
 
-const webhookTypeSchema = z.enum(["generic", "openclaw"]);
-
 export const createWebhookSchema = z.object({
-  type: webhookTypeSchema,
   url: z
     .url("Invalid URL")
     .refine(
@@ -17,7 +14,6 @@ export const createWebhookSchema = z.object({
 });
 
 export const patchWebhookSchema = z.object({
-  type: webhookTypeSchema.optional(),
   url: z
     .url("Invalid URL")
     .refine(

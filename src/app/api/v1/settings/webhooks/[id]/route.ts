@@ -49,12 +49,10 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
     });
   }
   const updates: Partial<{
-    type: string;
     url: string;
     secret: string | null;
     allowNow: boolean;
   }> = {};
-  if (body.type !== undefined) updates.type = body.type;
   if (body.url !== undefined) updates.url = body.url;
   if (body.secret !== undefined)
     updates.secret = body.secret === "" ? null : body.secret;
@@ -64,7 +62,6 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
     const timezone = await getAgentTimezone(agentPubkey);
     return Response.json({
       id: webhookRow.id,
-      type: webhookRow.type,
       url: webhookRow.url,
       allow_now: webhookRow.allowNow,
       created_at: formatTimestamp(webhookRow.createdAt, timezone),
@@ -78,7 +75,6 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
     .where(and(eq(webhooks.id, id), eq(webhooks.ownerPubkey, agentPubkey)))
     .returning({
       id: webhooks.id,
-      type: webhooks.type,
       url: webhooks.url,
       allow_now: webhooks.allowNow,
       createdAt: webhooks.createdAt,
@@ -95,7 +91,6 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
   const timezone = await getAgentTimezone(agentPubkey);
   return Response.json({
     id: webhook.id,
-    type: webhook.type,
     url: webhook.url,
     allow_now: webhook.allow_now,
     created_at: formatTimestamp(webhook.createdAt, timezone),

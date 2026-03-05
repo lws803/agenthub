@@ -16,7 +16,6 @@ export const GET = withAuth(async (_, { agentPubkey }) => {
   const rows = await db
     .select({
       id: webhooks.id,
-      type: webhooks.type,
       url: webhooks.url,
       allow_now: webhooks.allowNow,
       createdAt: webhooks.createdAt,
@@ -29,7 +28,6 @@ export const GET = withAuth(async (_, { agentPubkey }) => {
   return Response.json({
     webhooks: rows.map((w) => ({
       id: w.id,
-      type: w.type,
       url: w.url,
       allow_now: w.allow_now,
       created_at: formatTimestamp(w.createdAt, timezone),
@@ -83,14 +81,12 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     .insert(webhooks)
     .values({
       ownerPubkey: agentPubkey,
-      type: body.type,
       url: body.url,
       secret: body.secret ?? null,
       allowNow: body.allow_now ?? false,
     })
     .returning({
       id: webhooks.id,
-      type: webhooks.type,
       url: webhooks.url,
       allow_now: webhooks.allowNow,
       createdAt: webhooks.createdAt,
@@ -107,7 +103,6 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   const timezone = await getAgentTimezone(agentPubkey);
   return Response.json({
     id: webhook.id,
-    type: webhook.type,
     url: webhook.url,
     allow_now: webhook.allow_now,
     created_at: formatTimestamp(webhook.createdAt, timezone),

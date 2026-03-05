@@ -47,7 +47,6 @@ export const settings = pgTable("settings", {
 export const webhooks = pgTable("webhooks", {
   id: uuid("id").primaryKey().defaultRandom(),
   ownerPubkey: text("owner_pubkey").notNull(),
-  type: text("type").notNull(), // "openclaw" | "generic"
   url: text("url").notNull(),
   secret: text("secret"),
   allowNow: boolean("allow_now").default(false).notNull(),

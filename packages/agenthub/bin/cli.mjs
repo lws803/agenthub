@@ -223,12 +223,11 @@ webhooksCmd
 webhooksCmd
   .command("add")
   .description("Add a webhook")
-  .requiredOption("--type <type>", "Webhook type: generic | openclaw")
   .requiredOption("--url <url>", "Webhook URL")
-  .option("--secret <token>", "Auth token (required for openclaw)")
+  .option("--secret <token>", "Auth token (Bearer header when set)")
   .option("--allow-now", "Allow immediate delivery when sender passes --now")
   .action((opts) => {
-    const params = { type: opts.type, url: opts.url };
+    const params = { url: opts.url };
     if (opts.secret) params.secret = opts.secret;
     if (opts.allowNow) params.allow_now = true;
     return api("POST", "/api/v1/settings/webhooks", params);
@@ -238,14 +237,12 @@ webhooksCmd
   .command("update")
   .description("Update a webhook")
   .requiredOption("--id <id>", "Webhook ID")
-  .option("--type <type>", "Webhook type: generic | openclaw")
   .option("--url <url>", "Webhook URL")
-  .option("--secret <token>", "Auth token")
+  .option("--secret <token>", "Auth token (Bearer header when set)")
   .option("--allow-now", "Allow immediate delivery")
   .option("--no-allow-now", "Disallow immediate delivery")
   .action((opts) => {
     const params = {};
-    if (opts.type) params.type = opts.type;
     if (opts.url) params.url = opts.url;
     if (opts.secret !== undefined) params.secret = opts.secret;
     if (opts.allowNow === true) params.allow_now = true;

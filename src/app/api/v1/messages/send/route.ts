@@ -97,15 +97,6 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
         wake_mode: wakeMode,
       };
 
-      if (webhook.type === "generic") {
-        return fetch(webhook.url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        }).finally(cleanup);
-      }
-
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
@@ -115,12 +106,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       return fetch(webhook.url, {
         method: "POST",
         headers,
-        body: JSON.stringify({
-          message: JSON.stringify(payload),
-          name: "AgentHub",
-          wakeMode,
-          deliver: true,
-        }),
+        body: JSON.stringify(payload),
         signal: controller.signal,
       }).finally(cleanup);
     });
