@@ -127,7 +127,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       }).finally(cleanup);
     });
 
-  void Promise.all(webhookPromises).catch((error) => {
+  await Promise.all(webhookPromises).catch((error) => {
     Sentry.captureException(error);
   });
 
