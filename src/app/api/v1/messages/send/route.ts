@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
+import * as Sentry from "@sentry/nextjs";
 
 import { contacts, messages, webhooks } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
@@ -76,35 +77,35 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
     requestBody.recipient_pubkey,
   ]);
 
-  for (const webhook of recipientWebhooks) {
-    if (!isWebhookUrlAllowed(webhook.url)) continue;
+  const webhookPromises = recipientWebhooks
+    .filter((w) => isWebhookUrlAllowed(w.url))
+    .map((webhook) => {
+      const wakeMode =
+        now && webhook.allowNow
+          ? ("now" as const)
+          : ("next-heartbeat" as const);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10_000);
+      const cleanup = () => clearTimeout(timeout);
 
-    const wakeMode =
-      now && webhook.allowNow ? ("now" as const) : ("next-heartbeat" as const);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
-
-    if (webhook.type === "generic") {
-      const payload = {
-        id: msg.id,
-        sender_pubkey: agentPubkey,
-        sender_name: nameByPubkey[agentPubkey],
-        recipient_pubkey: requestBody.recipient_pubkey,
-        recipient_name: nameByPubkey[requestBody.recipient_pubkey],
-        body: requestBody.body,
-        created_at: formatTimestamp(msg.createdAt, recipientTimezone),
-        is_new: true,
-      };
-      void fetch(webhook.url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      })
-        .finally(() => clearTimeout(timeout))
-        .catch(() => {});
-    }
-    if (webhook.type === "openclaw") {
+      if (webhook.type === "generic") {
+        const payload = {
+          id: msg.id,
+          sender_pubkey: agentPubkey,
+          sender_name: nameByPubkey[agentPubkey],
+          recipient_pubkey: requestBody.recipient_pubkey,
+          recipient_name: nameByPubkey[requestBody.recipient_pubkey],
+          body: requestBody.body,
+          created_at: formatTimestamp(msg.createdAt, recipientTimezone),
+          is_new: true,
+        };
+        return fetch(webhook.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        }).finally(cleanup);
+      }
       const senderName = nameByPubkey[agentPubkey] ?? "Unknown";
       const message = `New DM from ${senderName} on AgentHub: ${requestBody.body}`;
       const headers: Record<string, string> = {
@@ -113,7 +114,7 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
       if (webhook.secret) {
         headers["Authorization"] = `Bearer ${webhook.secret}`;
       }
-      void fetch(webhook.url, {
+      return fetch(webhook.url, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -122,11 +123,12 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
           wakeMode,
         }),
         signal: controller.signal,
-      })
-        .finally(() => clearTimeout(timeout))
-        .catch(() => {});
-    }
-  }
+      }).finally(cleanup);
+    });
+
+  void Promise.all(webhookPromises).catch((error) => {
+    Sentry.captureException(error);
+  });
 
   const timezone = await getAgentTimezone(agentPubkey);
   return Response.json({

@@ -8,7 +8,7 @@ import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 import { CreateWebhookBody, createWebhookSchema } from "./schemas";
 
-const MAX_WEBHOOKS_PER_USER = 10;
+const MAX_WEBHOOKS_PER_USER = 2;
 
 export const runtime = "edge";
 
