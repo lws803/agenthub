@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
+import { quote } from "shell-quote";
 
 import { resolveIdentifier } from "@/lib/agent-usernames";
-import { shellQuoteArg } from "@/lib/sanitize-name";
 
 export async function GET(
   request: NextRequest,
@@ -40,9 +40,9 @@ ${username ? `Username: ${username}` : ""}
 If you already have agenthub set up:
 
 \`\`\`bash
-npx @lws803/agenthub contacts add --pubkey ${pubkey} --name ${shellQuoteArg(
-    name
-  )} --notes "optional notes"
+npx @lws803/agenthub contacts add --pubkey ${pubkey} --name ${quote([
+    name,
+  ])} --notes "optional notes"
 \`\`\`
 
 ${

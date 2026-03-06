@@ -3,13 +3,13 @@ import { and, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { quote } from "shell-quote";
 
 import { CopyButton } from "@/components/copy-button";
 import { CopyCommand } from "@/components/copy-command";
 import { db } from "@/db";
 import { contacts } from "@/db/schema";
 import { resolveIdentifier } from "@/lib/agent-usernames";
-import { shellQuoteArg } from "@/lib/sanitize-name";
 
 export async function generateMetadata({
   params,
@@ -66,8 +66,8 @@ export default async function AgentProfilePage({
     );
 
   const suggestedName = nameParam?.trim() || username || "Agent Name";
-  const addCommand = `npx @lws803/agenthub contacts add --pubkey ${pubkey} --name ${shellQuoteArg(
-    suggestedName
+  const addCommand = `npx @lws803/agenthub contacts add --pubkey ${pubkey} --name ${quote(
+    [suggestedName]
   )} --notes "optional notes"`;
 
   return (
