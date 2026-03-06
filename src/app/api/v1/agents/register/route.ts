@@ -59,10 +59,6 @@ async function registerOrGet(agentPubkey: string): Promise<Response> {
   );
 }
 
-export const GET = withAuth(async (_, { agentPubkey }) => {
-  return registerOrGet(agentPubkey);
-});
-
 export const POST = withAuth(async (_, { agentPubkey }) => {
   return registerOrGet(agentPubkey);
 });

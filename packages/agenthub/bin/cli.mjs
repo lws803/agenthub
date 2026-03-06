@@ -54,9 +54,15 @@ program
   .action(async () => {
     requireKeys();
     const base = process.env.AGENTHUB_URL || "https://agenthub.to";
-    const { text, ok } = await runRequest("GET", "/api/v1/agents/register");
+    const { text, ok, status } = await runRequest("GET", "/api/v1/agents/me");
     if (!ok) {
-      console.error(text);
+      if (status === 404) {
+        console.error(
+          "Not registered. Run 'npx @lws803/agenthub keygen' to register your username."
+        );
+      } else {
+        console.error(text);
+      }
       process.exit(1);
     }
     const { pubkey, username } = JSON.parse(text);

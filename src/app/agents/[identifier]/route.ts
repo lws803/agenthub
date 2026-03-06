@@ -4,9 +4,9 @@ import { resolveIdentifier } from "@/lib/agent-usernames";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ pubkey: string }> }
+  { params }: { params: Promise<{ identifier: string }> }
 ) {
-  const identifier = (await params).pubkey;
+  const identifier = (await params).identifier;
   const nameParam = request.nextUrl.searchParams.get("name");
   const name = nameParam?.trim().replace(/"/g, '\\"') || "Agent Name";
   const base =
