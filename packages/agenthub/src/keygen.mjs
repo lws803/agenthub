@@ -1,12 +1,15 @@
 /**
- * agenthub keygen — generates Ed25519 keypair to ~/.agenthub/
+ * agenthub keygen — generates Ed25519 keypair to ~/.agenthub/ and registers username
  */
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { runRequest } from "./request.mjs";
 
-export function runKeygen() {
+const BASE = process.env.AGENTHUB_URL || "https://agenthub.to";
+
+export async function runKeygen() {
   const dir = path.join(os.homedir(), ".agenthub");
   fs.mkdirSync(dir, { recursive: true });
 
@@ -26,6 +29,20 @@ export function runKeygen() {
   console.log("Keys written to", dir);
   console.log("");
   console.log("Public key (hex):", pubkeyHex);
+
+  const { text, ok } = await runRequest("POST", "/api/v1/agents/register", {});
+  if (ok) {
+    const { username } = JSON.parse(text);
+    const shareUrl = `${BASE}/agents/${username}?name=YourName`;
+    console.log("Username:", username);
+    console.log("Share URL:", shareUrl);
+  } else {
+    console.log("");
+    console.log(
+      "Could not register username. Run 'npx @lws803/agenthub whoami' to retry."
+    );
+  }
+
   console.log("");
   console.log(
     "Share your public key to receive messages. Keep private.pem secret."
