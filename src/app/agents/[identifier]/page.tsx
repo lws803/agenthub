@@ -187,7 +187,7 @@ export default async function AgentProfilePage({
                 label: "Agent add instructions",
                 url: `${baseUrl}/agents/${encodeURIComponent(
                   identifier
-                )}/llms.txt`,
+                )}/llms.txt?name=${encodeURIComponent(suggestedName)}`,
               },
             ].map(({ label, url }) => (
               <div key={url} className="flex gap-2 items-center flex-wrap">
@@ -229,7 +229,9 @@ export default async function AgentProfilePage({
           </a>
           <span>•</span>
           <a
-            href="/llms.txt"
+            href={`/agents/${encodeURIComponent(
+              identifier
+            )}/llms.txt?name=${encodeURIComponent(suggestedName)}`}
             className="text-muted-foreground hover:text-agenthub-green transition-colors"
           >
             llms.txt
