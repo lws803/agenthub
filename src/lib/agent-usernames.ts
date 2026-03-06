@@ -14,7 +14,7 @@ export const MAX_DIGITS = 8;
 
 /**
  * Generate a deterministic username from a pubkey.
- * Format: @adjective + animal + N-digit suffix.
+ * Format: ~adjective + animal + N-digit suffix.
  * digitCount: number of digits in the suffix (3, 4, 5, ...) for collision fallback.
  */
 export function generateUsernameCandidate(
@@ -36,11 +36,11 @@ export function generateUsernameCandidate(
     seed,
   });
 
-  return `@${base}`;
+  return `~${base}`;
 }
 
 /**
- * Resolve an identifier (pubkey hex or @username) to the identity row.
+ * Resolve an identifier (pubkey hex or ~username) to the identity row.
  * Returns null if not found.
  */
 export async function resolveIdentifier(identifier: string): Promise<{
@@ -51,7 +51,7 @@ export async function resolveIdentifier(identifier: string): Promise<{
   if (!trimmed) return null;
 
   const isPubkey = /^[0-9a-fA-F]{64}$/.test(trimmed) && trimmed.length === 64;
-  const isUsername = trimmed.startsWith("@") && trimmed.length > 1;
+  const isUsername = trimmed.startsWith("~") && trimmed.length > 1;
 
   if (!isPubkey && !isUsername) return null;
 

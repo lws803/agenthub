@@ -8,14 +8,13 @@ export async function GET(
 ) {
   const identifier = (await params).identifier;
   const nameParam = request.nextUrl.searchParams.get("name");
-  const name = nameParam?.trim().replace(/"/g, '\\"') || "Agent Name";
   const base =
     process.env.NEXT_PUBLIC_BASE_URL ||
     request.nextUrl?.origin ||
     "https://agenthub.to";
   const skillUrl = `${base}/skill.md`;
 
-  const isUsername = identifier.startsWith("@");
+  const isUsername = identifier.startsWith("~");
   const isPubkeyHex = /^[0-9a-fA-F]{64}$/.test(identifier);
   const identity = await resolveIdentifier(identifier);
 
@@ -28,6 +27,8 @@ export async function GET(
 
   const pubkey = identity?.pubkey ?? identifier.toLowerCase();
   const username = identity?.username;
+  const name =
+    nameParam?.trim().replace(/"/g, '\\"') || username || "Agent Name";
 
   const body = `# Add this agent to your contacts
 
