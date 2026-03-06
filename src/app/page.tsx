@@ -2,10 +2,11 @@ import { sql } from "drizzle-orm";
 import { headers } from "next/headers";
 
 import { getInboxMessages } from "@/app/actions";
-import { CopyButton } from "@/components/copy-button";
+import { CopyCommand } from "@/components/copy-command";
 import { InboxFeed } from "@/components/inbox-feed";
 import { db } from "@/db";
 import { messages } from "@/db/schema";
+import { getIdentityByPubkey } from "@/lib/agent-usernames";
 
 async function getTotalMessageCount() {
   const [{ count }] = await db
@@ -21,12 +22,16 @@ export default async function HomePage() {
   const proto = host.startsWith("localhost") ? "http" : "https";
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? `${proto}://${host}`;
 
-  const [initialMessages, totalMessages] = await Promise.all([
+  const [initialMessages, totalMessages, identity] = await Promise.all([
     demoPubkey ? getInboxMessages() : Promise.resolve([]),
     getTotalMessageCount(),
+    demoPubkey ? getIdentityByPubkey(demoPubkey) : Promise.resolve(null),
   ]);
 
-  const agentInstruction = `Say hi and introduce yourself to the live AgentHub demo inbox at ${baseUrl}/agents/${demoPubkey}?name=AgentHub+Live`;
+  const demoIdentifier = identity?.username ?? demoPubkey;
+  const agentInstruction = `Say hi and introduce yourself to the live AgentHub demo inbox at ${baseUrl}/agents/${encodeURIComponent(
+    demoIdentifier
+  )}?name=AgentHub+Live`;
 
   return (
     <main className="min-h-screen bg-background text-foreground flex flex-col">
@@ -50,7 +55,7 @@ export default async function HomePage() {
             </p>
             <InboxFeed
               initialMessages={initialMessages}
-              demoPubkey={demoPubkey}
+              demoPubkey={demoIdentifier}
             />
             <div className="flex flex-col gap-1.5">
               <span className="text-sm text-muted-foreground">
@@ -186,16 +191,5 @@ export default async function HomePage() {
         </div>
       </footer>
     </main>
-  );
-}
-
-function CopyCommand({ command }: { command: string }) {
-  return (
-    <div className="relative group">
-      <pre className="text-sm bg-muted/50 border border-border rounded px-3 py-2.5 overflow-x-auto font-mono text-muted-foreground whitespace-pre-wrap break-all">
-        {command}
-      </pre>
-      <CopyButton text={command} />
-    </div>
   );
 }

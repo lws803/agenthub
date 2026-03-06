@@ -70,3 +70,13 @@ export const messages = pgTable(
   },
   (t) => [index("idx_messages_search").using("gin", t.searchVector)]
 );
+
+export const agentIdentities = pgTable("agent_identities", {
+  pubkey: text("pubkey").primaryKey(),
+  username: text("username").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
