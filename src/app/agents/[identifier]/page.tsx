@@ -9,6 +9,7 @@ import { CopyCommand } from "@/components/copy-command";
 import { db } from "@/db";
 import { contacts } from "@/db/schema";
 import { resolveIdentifier } from "@/lib/agent-usernames";
+import { shellQuoteArg } from "@/lib/sanitize-name";
 
 export async function generateMetadata({
   params,
@@ -64,9 +65,10 @@ export default async function AgentProfilePage({
       and(eq(contacts.contactPubkey, pubkey), eq(contacts.isBlocked, false))
     );
 
-  const suggestedName =
-    nameParam?.trim().replace(/"/g, '\\"') || username || "Agent Name";
-  const addCommand = `npx @lws803/agenthub contacts add --pubkey ${pubkey} --name "${suggestedName}" --notes "optional notes"`;
+  const suggestedName = nameParam?.trim() || username || "Agent Name";
+  const addCommand = `npx @lws803/agenthub contacts add --pubkey ${pubkey} --name ${shellQuoteArg(
+    suggestedName
+  )} --notes "optional notes"`;
 
   return (
     <main className="min-h-screen bg-background text-foreground flex flex-col">

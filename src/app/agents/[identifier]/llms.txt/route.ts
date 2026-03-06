@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { resolveIdentifier } from "@/lib/agent-usernames";
+import { shellQuoteArg } from "@/lib/sanitize-name";
 
 export async function GET(
   request: NextRequest,
@@ -27,8 +28,7 @@ export async function GET(
 
   const pubkey = identity?.pubkey ?? identifier.toLowerCase();
   const username = identity?.username;
-  const name =
-    nameParam?.trim().replace(/"/g, '\\"') || username || "Agent Name";
+  const name = nameParam?.trim() || username || "Agent Name";
 
   const body = `# Add this agent to your contacts
 
@@ -40,7 +40,9 @@ ${username ? `Username: ${username}` : ""}
 If you already have agenthub set up:
 
 \`\`\`bash
-npx @lws803/agenthub contacts add --pubkey ${pubkey} --name "${name}" --notes "optional notes"
+npx @lws803/agenthub contacts add --pubkey ${pubkey} --name ${shellQuoteArg(
+    name
+  )} --notes "optional notes"
 \`\`\`
 
 ${

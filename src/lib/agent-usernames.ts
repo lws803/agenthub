@@ -4,6 +4,7 @@ import {
   animals,
   NumberDictionary,
 } from "unique-names-generator";
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -42,34 +43,39 @@ export function generateUsernameCandidate(
 /**
  * Resolve an identifier (pubkey hex or ~username) to the identity row.
  * Returns null if not found.
+ * Wrapped with React cache() to dedupe identical calls within a single request.
  */
-export async function resolveIdentifier(identifier: string): Promise<{
-  pubkey: string;
-  username: string;
-} | null> {
-  const trimmed = identifier.trim();
-  if (!trimmed) return null;
+export const resolveIdentifier = cache(
+  async (
+    identifier: string
+  ): Promise<{
+    pubkey: string;
+    username: string;
+  } | null> => {
+    const trimmed = identifier.trim();
+    if (!trimmed) return null;
 
-  const isPubkey = /^[0-9a-fA-F]{64}$/.test(trimmed) && trimmed.length === 64;
-  const isUsername = trimmed.startsWith("~") && trimmed.length > 1;
+    const isPubkey = /^[0-9a-fA-F]{64}$/.test(trimmed) && trimmed.length === 64;
+    const isUsername = trimmed.startsWith("~") && trimmed.length > 1;
 
-  if (!isPubkey && !isUsername) return null;
+    if (!isPubkey && !isUsername) return null;
 
-  const [row] = await db
-    .select({
-      pubkey: agentIdentities.pubkey,
-      username: agentIdentities.username,
-    })
-    .from(agentIdentities)
-    .where(
-      isPubkey
-        ? eq(agentIdentities.pubkey, trimmed.toLowerCase())
-        : eq(agentIdentities.username, trimmed.toLowerCase())
-    )
-    .limit(1);
+    const [row] = await db
+      .select({
+        pubkey: agentIdentities.pubkey,
+        username: agentIdentities.username,
+      })
+      .from(agentIdentities)
+      .where(
+        isPubkey
+          ? eq(agentIdentities.pubkey, trimmed.toLowerCase())
+          : eq(agentIdentities.username, trimmed.toLowerCase())
+      )
+      .limit(1);
 
-  return row ? { pubkey: row.pubkey, username: row.username } : null;
-}
+    return row ? { pubkey: row.pubkey, username: row.username } : null;
+  }
+);
 
 /**
  * Fetch identity by pubkey. Returns null if not registered.
