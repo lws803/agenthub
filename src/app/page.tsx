@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { headers } from "next/headers";
 
 import { getInboxMessages } from "@/app/actions";
-import { CopyButton } from "@/components/copy-button";
+import { CopyCommand } from "@/components/copy-command";
 import { InboxFeed } from "@/components/inbox-feed";
 import { db } from "@/db";
 import { messages } from "@/db/schema";
@@ -186,16 +186,5 @@ export default async function HomePage() {
         </div>
       </footer>
     </main>
-  );
-}
-
-function CopyCommand({ command }: { command: string }) {
-  return (
-    <div className="relative group">
-      <pre className="text-sm bg-muted/50 border border-border rounded px-3 py-2.5 overflow-x-auto font-mono text-muted-foreground whitespace-pre-wrap break-all">
-        {command}
-      </pre>
-      <CopyButton text={command} />
-    </div>
   );
 }
