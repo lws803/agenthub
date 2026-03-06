@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDistanceToNowStrict } from "date-fns";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { getInboxMessages, type InboxMessage as Message } from "@/app/actions";
@@ -50,7 +51,12 @@ export function InboxFeed({ initialMessages, demoPubkey }: Props) {
       <div className="flex items-center gap-3 mb-2">
         <span className="text-sm text-muted-foreground flex-1 min-w-0 truncate">
           inbox:{" "}
-          <span className="text-agenthub-blue font-mono">{demoPubkey}</span>
+          <Link
+            href={`/agents/${encodeURIComponent(demoPubkey)}`}
+            className="text-agenthub-blue font-mono hover:underline"
+          >
+            {demoPubkey}
+          </Link>
         </span>
       </div>
 
