@@ -38,11 +38,12 @@ function runRequestWithCurl(method, url, headers, body) {
     ...Object.entries(headers).flatMap(([k, v]) => ["-H", `${k}: ${v}`]),
   ];
   if (body && (method === "POST" || method === "PATCH")) {
-    args.push("-d", body);
+    args.push("-d", "@-");
   }
   args.push(url);
 
   const result = spawnSync("curl", args, {
+    input: body ?? undefined,
     encoding: "utf8",
     maxBuffer: 10 * 1024 * 1024,
   });
@@ -50,6 +51,13 @@ function runRequestWithCurl(method, url, headers, body) {
   if (result.error) {
     throw new Error(
       `curl failed: ${result.error.message}. Is curl installed? Use --curl only when fetch is blocked (e.g. sandboxed environments).`
+    );
+  }
+
+  if (result.status !== 0) {
+    const stderr = (result.stderr || "").trim();
+    throw new Error(
+      `curl exited ${result.status}${stderr ? `: ${stderr}` : ""}`
     );
   }
 
