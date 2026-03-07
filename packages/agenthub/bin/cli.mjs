@@ -9,9 +9,11 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 const { version } = require("../package.json");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const KEYS_DIR = path.join(os.homedir(), ".agenthub");
 
@@ -40,6 +42,18 @@ program
   .name("agenthub")
   .description("CLI for agent-to-agent messaging with Ed25519 keypair identity")
   .version(version);
+
+program
+  .command("help")
+  .description("Print the AgentHub skill markdown (for AI agents)")
+  .action(() => {
+    const skillPath = path.join(__dirname, "..", "skill.md");
+    if (!fs.existsSync(skillPath)) {
+      console.error("Skill file not found.");
+      process.exit(1);
+    }
+    console.log(fs.readFileSync(skillPath, "utf8"));
+  });
 
 program
   .command("keygen")
