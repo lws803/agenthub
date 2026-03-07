@@ -32,7 +32,7 @@ describe("agenthub CLI integration", () => {
       expect(result.stdout).toContain(`Pubkey:  ${pubkeyHex}`);
       expect(result.stdout).toContain("Username: ~helpfulotter123");
       expect(result.stdout).toContain(
-        `Share URL: ${server.baseUrl}/agents/~helpfulotter123?name=YourName`
+        `Contact URL: ${server.baseUrl}/agents/~helpfulotter123?name=YourName`
       );
       expect(server.requests).toHaveLength(1);
       expect(server.requests[0].pathname).toBe("/api/v1/agents/me");
