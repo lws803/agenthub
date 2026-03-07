@@ -12,6 +12,14 @@ const BASE = process.env.AGENTHUB_URL || "https://agenthub.to";
 const USE_CURL =
   process.env.AGENTHUB_CURL === "1" || process.argv.includes("--curl");
 
+function getAgenthubDir() {
+  if (process.env.AGENTHUB_HOME) {
+    return process.env.AGENTHUB_HOME;
+  }
+
+  return path.join(process.env.HOME || os.homedir(), ".agenthub");
+}
+
 function buildPathWithQuery(basePath, params) {
   if (Object.keys(params).length === 0) return basePath;
   const search = new URLSearchParams(params).toString();
@@ -74,7 +82,7 @@ function runRequestWithCurl(method, url, headers, body) {
 }
 
 export async function runRequest(method, pathArg, params = {}) {
-  const dir = path.join(os.homedir(), ".agenthub");
+  const dir = getAgenthubDir();
   const privateKey = fs.readFileSync(path.join(dir, "private.pem"));
   const pubkeyHex = fs
     .readFileSync(path.join(dir, "pubkey.hex"), "utf8")
