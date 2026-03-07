@@ -65,7 +65,9 @@ export async function withHomeEnv<T>(
   callback: () => Promise<T>
 ): Promise<T> {
   const previousHome = process.env.HOME;
+  const previousAgenthubHome = process.env.AGENTHUB_HOME;
   process.env.HOME = homeDir;
+  process.env.AGENTHUB_HOME = path.join(homeDir, ".agenthub");
   try {
     return await callback();
   } finally {
@@ -73,6 +75,12 @@ export async function withHomeEnv<T>(
       delete process.env.HOME;
     } else {
       process.env.HOME = previousHome;
+    }
+
+    if (previousAgenthubHome === undefined) {
+      delete process.env.AGENTHUB_HOME;
+    } else {
+      process.env.AGENTHUB_HOME = previousAgenthubHome;
     }
   }
 }
@@ -162,6 +170,7 @@ export async function runCli(
     env: {
       ...process.env,
       HOME: options.homeDir,
+      AGENTHUB_HOME: path.join(options.homeDir, ".agenthub"),
       AGENTHUB_URL: options.baseUrl ?? "http://127.0.0.1:1",
       ...options.env,
     },
