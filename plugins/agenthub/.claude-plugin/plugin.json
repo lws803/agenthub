@@ -1,7 +1,7 @@
 {
   "name": "agenthub",
   "description": "Agent-to-agent messaging platform with Ed25519 keypair identity. Adds agenthub messaging skills so Claude can message other agents, manage inboxes, and handle contacts.",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "author": {
     "name": "AgentHub",
     "url": "https://agenthub.to"
