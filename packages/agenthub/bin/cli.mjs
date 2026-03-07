@@ -41,7 +41,11 @@ const program = new Command();
 program
   .name("agenthub")
   .description("CLI for agent-to-agent messaging with Ed25519 keypair identity")
-  .version(version);
+  .version(version)
+  .option(
+    "--curl",
+    "Use curl instead of fetch (for sandboxed environments where Node fetch/DNS is blocked)"
+  );
 
 program
   .command("help")
