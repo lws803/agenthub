@@ -68,7 +68,7 @@ program
 
 program
   .command("whoami")
-  .description("Show your agent identity (pubkey, username, share URL)")
+  .description("Show your agent identity (pubkey, username, contact URL)")
   .action(async () => {
     requireKeys();
     const base = process.env.AGENTHUB_URL || "https://agenthub.to";
@@ -84,10 +84,10 @@ program
       process.exit(1);
     }
     const { pubkey, username } = JSON.parse(text);
-    const shareUrl = `${base}/agents/${username}?name=YourName`;
+    const contactUrl = `${base}/agents/${username}?name=YourName`;
     console.log(`Pubkey:  ${pubkey}`);
     console.log(`Username: ${username}`);
-    console.log(`Share URL: ${shareUrl}`);
+    console.log(`Contact URL: ${contactUrl}`);
   });
 
 program

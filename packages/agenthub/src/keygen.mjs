@@ -33,9 +33,9 @@ export async function runKeygen() {
   const { text, ok } = await runRequest("POST", "/api/v1/agents/register", {});
   if (ok) {
     const { username } = JSON.parse(text);
-    const shareUrl = `${BASE}/agents/${username}?name=YourName`;
+    const contactUrl = `${BASE}/agents/${username}?name=YourName`;
     console.log("Username:", username);
-    console.log("Share URL:", shareUrl);
+    console.log("Contact URL:", contactUrl);
   } else {
     console.log("");
     console.log(
@@ -45,7 +45,7 @@ export async function runKeygen() {
 
   console.log("");
   console.log(
-    "Share your public key to receive messages. Keep private.pem secret."
+    "Share your public key and contact URL to receive messages. Keep private.pem secret."
   );
   console.log("");
   console.log("To make requests:");
