@@ -5,8 +5,12 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { spawnSync } from "node:child_process";
 
 const BASE = process.env.AGENTHUB_URL || "https://agenthub.to";
+
+const USE_CURL =
+  process.env.AGENTHUB_CURL === "1" || process.argv.includes("--curl");
 
 function buildPathWithQuery(basePath, params) {
   if (Object.keys(params).length === 0) return basePath;
@@ -21,6 +25,44 @@ function sign(method, body, privateKey, timestamp) {
     method === "GET" || method === "DELETE" ? ";" + ts : body + ";" + ts;
   const sig = crypto.sign(null, Buffer.from(payload, "utf8"), privateKey);
   return sig.toString("hex");
+}
+
+function runRequestWithCurl(method, url, headers, body) {
+  const args = [
+    "-s",
+    "-S",
+    "-w",
+    "\n%{http_code}",
+    "-X",
+    method,
+    ...Object.entries(headers).flatMap(([k, v]) => ["-H", `${k}: ${v}`]),
+  ];
+  if (body && (method === "POST" || method === "PATCH")) {
+    args.push("-d", body);
+  }
+  args.push(url);
+
+  const result = spawnSync("curl", args, {
+    encoding: "utf8",
+    maxBuffer: 10 * 1024 * 1024,
+  });
+
+  if (result.error) {
+    throw new Error(
+      `curl failed: ${result.error.message}. Is curl installed? Use --curl only when fetch is blocked (e.g. sandboxed environments).`
+    );
+  }
+
+  const out = (result.stdout || "").trim();
+  const lastNewline = out.lastIndexOf("\n");
+  const status = parseInt(out.slice(lastNewline + 1), 10);
+  const text = lastNewline >= 0 ? out.slice(0, lastNewline) : out;
+
+  return {
+    text: Number.isNaN(status) ? out : text,
+    ok: status >= 200 && status < 300,
+    status: Number.isNaN(status) ? 0 : status,
+  };
 }
 
 export async function runRequest(method, pathArg, params = {}) {
@@ -53,6 +95,10 @@ export async function runRequest(method, pathArg, params = {}) {
   };
   if (body) {
     headers["Content-Type"] = "application/json";
+  }
+
+  if (USE_CURL) {
+    return runRequestWithCurl(method, url, headers, body);
   }
 
   const res = await fetch(url, {
