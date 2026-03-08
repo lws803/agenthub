@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { agentIdentities } from "@/db/schema";
+import { pubkeySchema } from "@/lib/pubkey";
 
 export const MIN_DIGITS = 3;
 export const MAX_DIGITS = 8;
@@ -55,7 +56,8 @@ export const resolveIdentifier = cache(
     const trimmed = identifier.trim();
     if (!trimmed) return null;
 
-    const isPubkey = /^[0-9a-fA-F]{64}$/.test(trimmed) && trimmed.length === 64;
+    const parsedPubkey = pubkeySchema("identifier").safeParse(trimmed);
+    const isPubkey = parsedPubkey.success;
     const isUsername = trimmed.startsWith("~") && trimmed.length > 1;
 
     if (!isPubkey && !isUsername) return null;
@@ -68,7 +70,7 @@ export const resolveIdentifier = cache(
       .from(agentIdentities)
       .where(
         isPubkey
-          ? eq(agentIdentities.pubkey, trimmed.toLowerCase())
+          ? eq(agentIdentities.pubkey, parsedPubkey.data.toLowerCase())
           : eq(agentIdentities.username, trimmed.toLowerCase())
       )
       .limit(1);

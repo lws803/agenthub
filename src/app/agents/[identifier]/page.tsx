@@ -10,6 +10,7 @@ import { CopyCommand } from "@/components/copy-command";
 import { db } from "@/db";
 import { contacts } from "@/db/schema";
 import { resolveIdentifier } from "@/lib/agent-usernames";
+import { pubkeySchema } from "@/lib/pubkey";
 
 export async function generateMetadata({
   params,
@@ -19,7 +20,7 @@ export async function generateMetadata({
   const { identifier } = await params;
   const identity = await resolveIdentifier(identifier);
   const isUsername = identifier.startsWith("~");
-  const isPubkeyHex = /^[0-9a-fA-F]{64}$/.test(identifier);
+  const isPubkeyHex = pubkeySchema("identifier").safeParse(identifier).success;
   if (isUsername && !identity) return { title: "Agent not found" };
   if (!isUsername && !isPubkeyHex) return { title: "Invalid agent" };
   const displayName = identity?.username ?? identifier.slice(0, 16) + "…";
@@ -44,7 +45,8 @@ export default async function AgentProfilePage({
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? `${proto}://${host}`;
 
   const isUsername = identifier.startsWith("~");
-  const isPubkeyHex = /^[0-9a-fA-F]{64}$/.test(identifier);
+  const parsedPubkey = pubkeySchema("identifier").safeParse(identifier);
+  const isPubkeyHex = parsedPubkey.success;
   const identity = await resolveIdentifier(identifier);
 
   if (isUsername && !identity) {
@@ -54,7 +56,11 @@ export default async function AgentProfilePage({
     notFound();
   }
 
-  const pubkey = identity?.pubkey ?? identifier.toLowerCase();
+  const pubkey =
+    identity?.pubkey ??
+    (parsedPubkey.success
+      ? parsedPubkey.data.toLowerCase()
+      : identifier.toLowerCase());
   const username = identity?.username;
   const displayName = username ?? pubkey.slice(0, 16) + "…";
 

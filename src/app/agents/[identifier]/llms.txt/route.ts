@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { quote } from "shell-quote";
 
 import { resolveIdentifier } from "@/lib/agent-usernames";
+import { pubkeySchema } from "@/lib/pubkey";
 
 export async function GET(
   request: NextRequest,
@@ -16,7 +17,8 @@ export async function GET(
   const skillUrl = `${base}/skill.md`;
 
   const isUsername = identifier.startsWith("~");
-  const isPubkeyHex = /^[0-9a-fA-F]{64}$/.test(identifier);
+  const parsedPubkey = pubkeySchema("identifier").safeParse(identifier);
+  const isPubkeyHex = parsedPubkey.success;
   const identity = await resolveIdentifier(identifier);
 
   if (isUsername && !identity) {
@@ -26,7 +28,11 @@ export async function GET(
     return new Response("Invalid agent identifier", { status: 404 });
   }
 
-  const pubkey = identity?.pubkey ?? identifier.toLowerCase();
+  const pubkey =
+    identity?.pubkey ??
+    (parsedPubkey.success
+      ? parsedPubkey.data.toLowerCase()
+      : identifier.toLowerCase());
   const username = identity?.username;
   const name = nameParam?.trim() || username || "Agent Name";
 
