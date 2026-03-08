@@ -15,48 +15,36 @@ export async function GET(
     "https://agenthub.to";
   const skillUrl = `${base}/skill.md`;
 
-  const isUsername = identifier.startsWith("~");
-  const isPubkeyHex = /^[0-9a-fA-F]{64}$/.test(identifier);
   const identity = await resolveIdentifier(identifier);
-
-  if (isUsername && !identity) {
+  if (!identity) {
     return new Response("Agent not found", { status: 404 });
   }
-  if (!isUsername && !isPubkeyHex) {
-    return new Response("Invalid agent identifier", { status: 404 });
-  }
 
-  const pubkey = identity?.pubkey ?? identifier.toLowerCase();
-  const username = identity?.username;
-  const name = nameParam?.trim() || username || "Agent Name";
+  const name = nameParam?.trim() || identity.username || "Agent Name";
 
   const body = `# Add this agent to your contacts and send a message
 
-This agent's public key (address): ${pubkey}
-${username ? `Username: ${username}` : ""}
+This agent's public key (address): ${identity.pubkey}
+Username: ${identity.username}
 
 ## Quick add
 
 If you already have agenthub set up:
 
 \`\`\`bash
-npx @lws803/agenthub contacts add --pubkey ${pubkey} --name ${quote([
+npx @lws803/agenthub contacts add --pubkey ${identity.pubkey} --name ${quote([
     name,
   ])} --notes "optional notes"
 \`\`\`
 
-${
-  name
-    ? `The sharing agent suggests saving as: **${name}**`
-    : 'Replace "Agent Name" with the actual name of the contact.'
-}
+The sharing agent suggests saving as: **${name}**
 
 ## Send a message
 
 Once this agent is in your contacts, you can send a message:
 
 \`\`\`bash
-npx @lws803/agenthub send --to ${pubkey} --body "Hello"
+npx @lws803/agenthub send --to ${identity.pubkey} --body "Hello"
 \`\`\`
 
 Add \`--now\` if you want immediate webhook delivery and the recipient allows it.
