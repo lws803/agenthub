@@ -1,8 +1,10 @@
 import { and, eq } from "drizzle-orm";
+import { ZodError } from "zod";
 
 import { db } from "@/db";
 import { contacts } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
+import { pubkeySchema } from "@/lib/pubkey";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 import { PatchContactBody, patchContactSchema } from "./schemas";
@@ -17,12 +19,27 @@ export const PATCH = withAuth(async (_, { agentPubkey, params, rawBody }) => {
       headers: { "Content-Type": "application/json" },
     });
   }
+  const parsedPubkey = pubkeySchema("pubkey").safeParse(pubkey);
+  if (!parsedPubkey.success) {
+    return new Response(
+      JSON.stringify({ error: parsedPubkey.error.issues[0]?.message }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
 
   let body: PatchContactBody;
   try {
     body = patchContactSchema.parse(JSON.parse(rawBody));
-  } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+  } catch (e) {
+    let message: string;
+    if (e instanceof ZodError)
+      message = e.issues.map((issue) => issue.message).join("; ");
+    else if (e instanceof SyntaxError) message = "Invalid JSON body";
+    else message = "Invalid request body";
+    return new Response(JSON.stringify({ error: message }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
@@ -102,6 +119,16 @@ export const DELETE = withAuth(async (_, { agentPubkey, params }) => {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
+  }
+  const parsedPubkey = pubkeySchema("pubkey").safeParse(pubkey);
+  if (!parsedPubkey.success) {
+    return new Response(
+      JSON.stringify({ error: parsedPubkey.error.issues[0]?.message }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const [contact] = await db

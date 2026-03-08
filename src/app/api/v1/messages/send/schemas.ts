@@ -1,7 +1,9 @@
 import { z } from "zod";
 
+import { pubkeySchema } from "@/lib/pubkey";
+
 export const sendMessageSchema = z.object({
-  recipient_pubkey: z.string().trim().min(1, "recipient_pubkey is required"),
+  recipient_pubkey: pubkeySchema("recipient_pubkey"),
   body: z.string().trim().min(1, "body is required"),
   now: z.boolean().optional(),
 });

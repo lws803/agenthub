@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import * as Sentry from "@sentry/nextjs";
+import { ZodError } from "zod";
 
 import { contacts, messages, webhooks } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
@@ -16,8 +17,13 @@ export const POST = withAuth(async (_, { agentPubkey, rawBody }) => {
   let requestBody: SendMessageBody;
   try {
     requestBody = sendMessageSchema.parse(JSON.parse(rawBody));
-  } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+  } catch (e) {
+    let message: string;
+    if (e instanceof ZodError)
+      message = e.issues.map((issue) => issue.message).join("; ");
+    else if (e instanceof SyntaxError) message = "Invalid JSON body";
+    else message = "Invalid request body";
+    return new Response(JSON.stringify({ error: message }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
