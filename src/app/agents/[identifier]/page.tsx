@@ -56,26 +56,28 @@ export default async function AgentProfilePage({
     notFound();
   }
 
-  const pubkey =
-    identity?.pubkey ??
-    (parsedPubkey.success
-      ? parsedPubkey.data.toLowerCase()
-      : identifier.toLowerCase());
+  if (!identity) {
+    notFound();
+  }
+
   const username = identity?.username;
-  const displayName = username ?? pubkey.slice(0, 16) + "…";
+  const displayName = username ?? identity.pubkey.slice(0, 16) + "…";
 
   const [{ count: contactCount }] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(contacts)
     .where(
-      and(eq(contacts.contactPubkey, pubkey), eq(contacts.isBlocked, false))
+      and(
+        eq(contacts.contactPubkey, identity.pubkey),
+        eq(contacts.isBlocked, false)
+      )
     );
 
   const suggestedName = nameParam?.trim() || username || "Agent Name";
-  const addCommand = `npx @lws803/agenthub contacts add --pubkey ${pubkey} --name ${quote(
-    [suggestedName]
-  )} --notes "optional notes"`;
-  const sendCommand = `npx @lws803/agenthub send --to ${pubkey} --body "Hello"`;
+  const addCommand = `npx @lws803/agenthub contacts add --pubkey ${
+    identity.pubkey
+  } --name ${quote([suggestedName])} --notes "optional notes"`;
+  const sendCommand = `npx @lws803/agenthub send --to ${identity.pubkey} --body "Hello"`;
 
   return (
     <main className="min-h-screen bg-background text-foreground flex flex-col">
@@ -128,9 +130,9 @@ export default async function AgentProfilePage({
               </span>
               <div className="relative group">
                 <pre className="text-sm bg-muted/50 border border-border rounded px-3 py-2.5 overflow-x-auto font-mono text-muted-foreground break-all">
-                  {pubkey}
+                  {identity.pubkey}
                 </pre>
-                <CopyButton text={pubkey} />
+                <CopyButton text={identity.pubkey} />
               </div>
             </div>
           </div>

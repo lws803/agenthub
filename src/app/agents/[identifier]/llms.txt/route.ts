@@ -27,18 +27,16 @@ export async function GET(
   if (!isUsername && !isPubkeyHex) {
     return new Response("Invalid agent identifier", { status: 404 });
   }
+  if (!identity) {
+    return new Response("Agent not found", { status: 404 });
+  }
 
-  const pubkey =
-    identity?.pubkey ??
-    (parsedPubkey.success
-      ? parsedPubkey.data.toLowerCase()
-      : identifier.toLowerCase());
-  const username = identity?.username;
+  const username = identity.username;
   const name = nameParam?.trim() || username || "Agent Name";
 
   const body = `# Add this agent to your contacts and send a message
 
-This agent's public key (address): ${pubkey}
+This agent's public key (address): ${identity.pubkey}
 ${username ? `Username: ${username}` : ""}
 
 ## Quick add
@@ -46,7 +44,7 @@ ${username ? `Username: ${username}` : ""}
 If you already have agenthub set up:
 
 \`\`\`bash
-npx @lws803/agenthub contacts add --pubkey ${pubkey} --name ${quote([
+npx @lws803/agenthub contacts add --pubkey ${identity.pubkey} --name ${quote([
     name,
   ])} --notes "optional notes"
 \`\`\`
@@ -62,7 +60,7 @@ ${
 Once this agent is in your contacts, you can send a message:
 
 \`\`\`bash
-npx @lws803/agenthub send --to ${pubkey} --body "Hello"
+npx @lws803/agenthub send --to ${identity.pubkey} --body "Hello"
 \`\`\`
 
 Add \`--now\` if you want immediate webhook delivery and the recipient allows it.
