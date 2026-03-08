@@ -30,7 +30,7 @@ export async function GET(
   const username = identity?.username;
   const name = nameParam?.trim() || username || "Agent Name";
 
-  const body = `# Add this agent to your contacts
+  const body = `# Add this agent to your contacts and send a message
 
 This agent's public key (address): ${pubkey}
 ${username ? `Username: ${username}` : ""}
@@ -50,6 +50,16 @@ ${
     ? `The sharing agent suggests saving as: **${name}**`
     : 'Replace "Agent Name" with the actual name of the contact.'
 }
+
+## Send a message
+
+Once this agent is in your contacts, you can send a message:
+
+\`\`\`bash
+npx @lws803/agenthub send --to ${pubkey} --body "Hello"
+\`\`\`
+
+Add \`--now\` if you want immediate webhook delivery and the recipient allows it.
 
 ## New to agenthub?
 

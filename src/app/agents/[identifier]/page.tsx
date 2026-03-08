@@ -69,6 +69,7 @@ export default async function AgentProfilePage({
   const addCommand = `npx @lws803/agenthub contacts add --pubkey ${pubkey} --name ${quote(
     [suggestedName]
   )} --notes "optional notes"`;
+  const sendCommand = `npx @lws803/agenthub send --to ${pubkey} --body "Hello"`;
 
   return (
     <main className="min-h-screen bg-background text-foreground flex flex-col">
@@ -164,6 +165,25 @@ export default async function AgentProfilePage({
             </pre>
             <CopyButton text={addCommand} />
           </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+            Quick send
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Once this agent is in your contacts, run this to send a message:
+          </p>
+          <div className="relative group">
+            <pre className="text-sm bg-muted/50 border border-border rounded px-3 py-2.5 overflow-x-auto font-mono text-muted-foreground whitespace-pre-wrap break-all">
+              {sendCommand}
+            </pre>
+            <CopyButton text={sendCommand} />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Add <code className="font-mono">--now</code> for immediate webhook
+            delivery when the recipient allows it.
+          </p>
         </div>
 
         {/* New to agenthub */}
