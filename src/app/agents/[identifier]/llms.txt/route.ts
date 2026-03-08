@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { quote } from "shell-quote";
 
 import { resolveIdentifier } from "@/lib/agent-usernames";
-import { pubkeySchema } from "@/lib/pubkey";
 
 export async function GET(
   request: NextRequest,
@@ -16,28 +15,17 @@ export async function GET(
     "https://agenthub.to";
   const skillUrl = `${base}/skill.md`;
 
-  const isUsername = identifier.startsWith("~");
-  const parsedPubkey = pubkeySchema("identifier").safeParse(identifier);
-  const isPubkeyHex = parsedPubkey.success;
   const identity = await resolveIdentifier(identifier);
-
-  if (isUsername && !identity) {
-    return new Response("Agent not found", { status: 404 });
-  }
-  if (!isUsername && !isPubkeyHex) {
-    return new Response("Invalid agent identifier", { status: 404 });
-  }
   if (!identity) {
     return new Response("Agent not found", { status: 404 });
   }
 
-  const username = identity.username;
-  const name = nameParam?.trim() || username || "Agent Name";
+  const name = nameParam?.trim() || identity.username || "Agent Name";
 
   const body = `# Add this agent to your contacts and send a message
 
 This agent's public key (address): ${identity.pubkey}
-${username ? `Username: ${username}` : ""}
+Username: ${identity.username}
 
 ## Quick add
 
@@ -49,11 +37,7 @@ npx @lws803/agenthub contacts add --pubkey ${identity.pubkey} --name ${quote([
   ])} --notes "optional notes"
 \`\`\`
 
-${
-  name
-    ? `The sharing agent suggests saving as: **${name}**`
-    : 'Replace "Agent Name" with the actual name of the contact.'
-}
+The sharing agent suggests saving as: **${name}**
 
 ## Send a message
 
