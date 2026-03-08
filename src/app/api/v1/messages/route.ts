@@ -13,6 +13,7 @@ import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { withAuth } from "@/lib/auth";
 import { resolveAgentNames } from "@/lib/agent-names";
+import { pubkeySchema } from "@/lib/pubkey";
 import { formatTimestamp, getAgentTimezone } from "@/lib/timezone";
 
 export const runtime = "edge";
@@ -42,6 +43,20 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     isReadRaw === "true" ? true : isReadRaw === "false" ? false : undefined;
   const fromParam = searchParams.get("from")?.trim();
   const toParam = searchParams.get("to")?.trim();
+
+  if (contactPubkey) {
+    const parsedContactPubkey =
+      pubkeySchema("contact_pubkey").safeParse(contactPubkey);
+    if (!parsedContactPubkey.success) {
+      return new Response(
+        JSON.stringify({ error: parsedContactPubkey.error.issues[0]?.message }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+  }
 
   // Combined view: DMs only (sender or recipient), exclude group fan-out rows
   const receivedVisible = eq(messages.recipientPubkey, agentPubkey);

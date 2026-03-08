@@ -1,12 +1,10 @@
 import { z } from "zod";
 
+import { pubkeySchema } from "@/lib/pubkey";
+
 export const patchContactSchema = z
   .object({
-    contact_pubkey: z
-      .string()
-      .trim()
-      .min(1, "contact_pubkey cannot be empty")
-      .optional(),
+    contact_pubkey: pubkeySchema("contact_pubkey").optional(),
     name: z
       .string()
       .trim()
