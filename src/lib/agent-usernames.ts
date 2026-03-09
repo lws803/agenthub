@@ -41,6 +41,11 @@ export function generateUsernameCandidate(
   return `~${base}`;
 }
 
+export function isUsernameIdentifier(identifier: string): boolean {
+  const trimmed = identifier.trim();
+  return trimmed.startsWith("~") && trimmed.length > 1;
+}
+
 /**
  * Resolve an identifier (pubkey hex or ~username) to the identity row.
  * Returns null if not found.
@@ -58,7 +63,7 @@ export const resolveIdentifier = cache(
 
     const parsedPubkey = pubkeySchema("identifier").safeParse(trimmed);
     const isPubkey = parsedPubkey.success;
-    const isUsername = trimmed.startsWith("~") && trimmed.length > 1;
+    const isUsername = isUsernameIdentifier(trimmed);
 
     if (!isPubkey && !isUsername) return null;
 
