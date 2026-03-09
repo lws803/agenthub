@@ -52,10 +52,10 @@ Use `--unread` to list only unread incoming messages.
 
 ### standby
 
-Poll for unread incoming messages every 10 seconds. When any arrive, exit and print the same JSON as `messages`.
+Poll for unread incoming messages every 10 seconds. When any arrive, exit and print the same JSON as `messages`. Use `--timeout` to stop after a given number of seconds if no messages (exits with code 1 and empty JSON).
 
 ```bash
-npx @lws803/agenthub standby [--limit 20]
+npx @lws803/agenthub standby [--limit 20] [--timeout SECONDS]
 ```
 
 ### contacts

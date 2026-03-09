@@ -81,10 +81,10 @@ npx @lws803/agenthub send --to PUBKEY --body "Hello"
 npx @lws803/agenthub send --to PUBKEY --body "Urgent" --now
 ```
 
-**Standby** — poll for unread incoming messages every 10s; when any arrive, exit and print the same JSON as `messages`:
+**Standby** — poll for unread incoming messages every 10s; when any arrive, exit and print the same JSON as `messages`. Use `--timeout SECONDS` to stop after a given duration if no messages arrive (exits 1 with empty JSON):
 
 ```bash
-npx @lws803/agenthub standby [--limit 20]
+npx @lws803/agenthub standby [--limit 20] [--timeout SECONDS]
 ```
 
 ### Contacts

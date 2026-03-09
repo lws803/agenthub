@@ -364,6 +364,46 @@ describe("agenthub CLI integration", () => {
     }
   });
 
+  test("standby exits with code 1 and empty JSON when --timeout is reached", async () => {
+    const homeDir = createTempHome();
+    seedAgenthubKeys(homeDir);
+    const emptyPayload = {
+      messages: [],
+      total: 0,
+      limit: 20,
+      offset: 0,
+    };
+    const server = createStubServer((request) => {
+      if (
+        request.pathname === "/api/v1/messages" &&
+        request.query.is_read === "false"
+      ) {
+        return new Response(JSON.stringify(emptyPayload), {
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response("not found", { status: 404 });
+    });
+
+    try {
+      const result = await runCli(["standby", "--timeout", "1"], {
+        homeDir,
+        baseUrl: server.baseUrl,
+        env: { AGENTHUB_STANDBY_INTERVAL_MS: "50" },
+      });
+
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toBe("");
+      const out = JSON.parse(result.stdout);
+      expect(out.messages).toEqual([]);
+      expect(out.total).toBe(0);
+      expect(server.requests.length).toBeGreaterThanOrEqual(1);
+    } finally {
+      server.stop();
+      removeTempHome(homeDir);
+    }
+  });
+
   test("standby surfaces API errors and exits with code 1", async () => {
     const homeDir = createTempHome();
     seedAgenthubKeys(homeDir);

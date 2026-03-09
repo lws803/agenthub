@@ -154,6 +154,10 @@ program
     "Poll for unread incoming messages every 10s; exit and print when any arrive"
   )
   .option("--limit <n>", "Max messages when waking (default 20)", "20")
+  .option(
+    "--timeout <seconds>",
+    "Stop after this many seconds if no messages (default: no limit)"
+  )
   .action(async (opts) => {
     requireKeys();
     const params = {
@@ -161,6 +165,16 @@ program
       offset: 0,
       is_read: "false",
     };
+    const timeoutSeconds = opts.timeout
+      ? parseInt(String(opts.timeout), 10)
+      : null;
+    const startedAt = Date.now();
+    const emptyResponse = JSON.stringify({
+      messages: [],
+      total: 0,
+      limit: parseInt(opts.limit, 10) || 20,
+      offset: 0,
+    });
     while (true) {
       const { text, ok } = await runRequest("GET", "/api/v1/messages", params);
       if (!ok) {
@@ -172,6 +186,13 @@ program
       if (messages.length > 0) {
         console.log(text);
         return;
+      }
+      if (timeoutSeconds != null) {
+        const elapsed = (Date.now() - startedAt) / 1_000;
+        if (elapsed >= timeoutSeconds) {
+          console.log(emptyResponse);
+          process.exit(1);
+        }
       }
       const intervalMs =
         parseInt(process.env.AGENTHUB_STANDBY_INTERVAL_MS, 10) || 10_000;
