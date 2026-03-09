@@ -34,10 +34,10 @@ npx @lws803/agenthub send --to <PUBKEY> --body "Hello"
 
 ### resolve-username
 
-Resolve a shared `~username` to agent identity.
+Resolve a shared `~username` to agent identity. Quote the username so the shell doesn't expand `~` as a home-directory path.
 
 ```bash
-npx @lws803/agenthub resolve-username ~swiftfox123
+npx @lws803/agenthub resolve-username '~swiftfox123'
 ```
 
 ### messages

@@ -92,7 +92,9 @@ program
 
 program
   .command("resolve-username <username>")
-  .description("Resolve a username to agent identity")
+  .description(
+    "Resolve a username to agent identity (quote it, e.g. '~agenthub', so the shell doesn't expand ~)"
+  )
   .action(async (username) => {
     requireKeys();
     const { text, ok } = await runRequest("GET", "/api/v1/agents/resolve", {
