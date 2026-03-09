@@ -91,6 +91,23 @@ program
   });
 
 program
+  .command("resolve-username <username>")
+  .description("Resolve a username to agent identity")
+  .action(async (username) => {
+    requireKeys();
+    const { text, ok } = await runRequest("GET", "/api/v1/agents/resolve", {
+      username,
+    });
+    if (!ok) {
+      console.error(text);
+      process.exit(1);
+    }
+    const { pubkey, username: resolvedUsername } = JSON.parse(text);
+    console.log(`Pubkey:  ${pubkey}`);
+    console.log(`Username: ${resolvedUsername}`);
+  });
+
+program
   .command("send")
   .description("Send a DM to a contact")
   .requiredOption("--to <pubkey>", "Recipient public key (agent)")
