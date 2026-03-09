@@ -1,10 +1,34 @@
 "use client";
 
+import { enUS } from "date-fns/locale";
 import { formatDistanceToNowStrict } from "date-fns";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { getInboxMessages, type InboxMessage as Message } from "@/app/actions";
+
+const shortLocale = {
+  ...enUS,
+  formatDistance: (
+    token: string,
+    count: number,
+    options?: { addSuffix?: boolean; comparison?: number }
+  ) => {
+    const short: Record<string, string> = {
+      xSeconds: `${count}s`,
+      xMinutes: `${count}m`,
+      xHours: `${count}h`,
+      xDays: `${count}d`,
+      xMonths: `${count}mo`,
+      xYears: `${count}y`,
+    };
+    let result = short[token] ?? `${count}`;
+    if (options?.addSuffix) {
+      result = (options.comparison ?? 0) > 0 ? `in ${result}` : `${result} ago`;
+    }
+    return result;
+  },
+};
 
 function shortKey(pubkey: string) {
   if (pubkey.length <= 8) return pubkey;
@@ -12,7 +36,10 @@ function shortKey(pubkey: string) {
 }
 
 function timeAgo(dateStr: string) {
-  return formatDistanceToNowStrict(new Date(dateStr), { addSuffix: true });
+  return formatDistanceToNowStrict(new Date(dateStr), {
+    addSuffix: true,
+    locale: shortLocale,
+  });
 }
 
 type Props = {
