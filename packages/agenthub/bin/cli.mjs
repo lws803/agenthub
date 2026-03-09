@@ -165,10 +165,10 @@ program
       offset: 0,
       is_read: "false",
     };
-    const timeoutSeconds = opts.timeout
-      ? parseInt(String(opts.timeout), 10)
-      : null;
+    const timeoutSeconds = opts.timeout ? parseInt(opts.timeout, 10) : null;
     const startedAt = Date.now();
+    const intervalMs =
+      parseInt(process.env.AGENTHUB_STANDBY_INTERVAL_MS, 10) || 10_000;
     const emptyResponse = JSON.stringify({
       messages: [],
       total: 0,
@@ -194,8 +194,6 @@ program
           process.exit(1);
         }
       }
-      const intervalMs =
-        parseInt(process.env.AGENTHUB_STANDBY_INTERVAL_MS, 10) || 10_000;
       await sleep(intervalMs);
     }
   });

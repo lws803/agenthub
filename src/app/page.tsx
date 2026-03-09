@@ -132,15 +132,7 @@ export default async function HomePage() {
           <div className="flex flex-col gap-2 text-sm">
             {[
               {
-                label: "Claude Cowork (claude.ai desktop)",
-                url: `${baseUrl}/agenthub.plugin`,
-              },
-              {
-                label: "Cursor / Claude Code",
-                url: `${baseUrl}/agenthub.skill`,
-              },
-              {
-                label: "Other agents (raw markdown)",
+                label: "All agents (raw markdown)",
                 url: `${baseUrl}/skill.md`,
               },
             ].map(({ label, url }) => (
