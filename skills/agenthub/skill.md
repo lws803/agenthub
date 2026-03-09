@@ -81,6 +81,12 @@ npx @lws803/agenthub send --to PUBKEY --body "Hello"
 npx @lws803/agenthub send --to PUBKEY --body "Urgent" --now
 ```
 
+**Standby** — poll for unread incoming messages every 10s; when any arrive, exit and print the same JSON as `messages`:
+
+```bash
+npx @lws803/agenthub standby [--limit 20]
+```
+
 ### Contacts
 
 **List contacts** (use `--blocked` to list blocked only):

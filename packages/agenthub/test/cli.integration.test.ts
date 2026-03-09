@@ -251,4 +251,151 @@ describe("agenthub CLI integration", () => {
       removeTempHome(homeDir);
     }
   });
+
+  test("standby exits immediately when unread messages exist", async () => {
+    const homeDir = createTempHome();
+    seedAgenthubKeys(homeDir);
+    const messagesPayload = {
+      messages: [
+        {
+          id: "msg_1",
+          sender_pubkey: "ab".repeat(32),
+          sender_name: "~alice",
+          recipient_pubkey: "cd".repeat(32),
+          recipient_name: null,
+          body: "Hello",
+          created_at: "2025-03-09T12:00:00Z",
+          is_new: true,
+        },
+      ],
+      total: 1,
+      limit: 20,
+      offset: 0,
+    };
+    const server = createStubServer((request) => {
+      if (
+        request.pathname === "/api/v1/messages" &&
+        request.query.is_read === "false"
+      ) {
+        return new Response(JSON.stringify(messagesPayload), {
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response("not found", { status: 404 });
+    });
+
+    try {
+      const result = await runCli(["standby"], {
+        homeDir,
+        baseUrl: server.baseUrl,
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toBe("");
+      expect(JSON.parse(result.stdout)).toEqual(messagesPayload);
+      expect(server.requests).toHaveLength(1);
+      expect(server.requests[0].pathname).toBe("/api/v1/messages");
+      expect(server.requests[0].query.is_read).toBe("false");
+    } finally {
+      server.stop();
+      removeTempHome(homeDir);
+    }
+  });
+
+  test("standby polls until unread messages arrive", async () => {
+    const homeDir = createTempHome();
+    seedAgenthubKeys(homeDir);
+    let pollCount = 0;
+    const emptyPayload = {
+      messages: [],
+      total: 0,
+      limit: 20,
+      offset: 0,
+    };
+    const messagesPayload = {
+      messages: [
+        {
+          id: "msg_2",
+          sender_pubkey: "ab".repeat(32),
+          sender_name: null,
+          recipient_pubkey: "cd".repeat(32),
+          recipient_name: null,
+          body: "New message",
+          created_at: "2025-03-09T12:01:00Z",
+          is_new: true,
+        },
+      ],
+      total: 1,
+      limit: 20,
+      offset: 0,
+    };
+    const server = createStubServer((request) => {
+      if (
+        request.pathname === "/api/v1/messages" &&
+        request.query.is_read === "false"
+      ) {
+        pollCount += 1;
+        if (pollCount < 3) {
+          return new Response(JSON.stringify(emptyPayload), {
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify(messagesPayload), {
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response("not found", { status: 404 });
+    });
+
+    try {
+      const result = await runCli(["standby"], {
+        homeDir,
+        baseUrl: server.baseUrl,
+        env: { AGENTHUB_STANDBY_INTERVAL_MS: "50" },
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toBe("");
+      expect(JSON.parse(result.stdout)).toEqual(messagesPayload);
+      expect(server.requests).toHaveLength(3);
+    } finally {
+      server.stop();
+      removeTempHome(homeDir);
+    }
+  });
+
+  test("standby surfaces API errors and exits with code 1", async () => {
+    const homeDir = createTempHome();
+    seedAgenthubKeys(homeDir);
+    const server = createStubServer((request) => {
+      if (
+        request.pathname === "/api/v1/messages" &&
+        request.query.is_read === "false"
+      ) {
+        return new Response(
+          JSON.stringify({ error: "Internal server error" }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+      return new Response("not found", { status: 404 });
+    });
+
+    try {
+      const result = await runCli(["standby"], {
+        homeDir,
+        baseUrl: server.baseUrl,
+      });
+
+      expect(result.exitCode).toBe(1);
+      expect(result.stdout).toBe("");
+      expect(result.stderr).toContain("Internal server error");
+      expect(server.requests).toHaveLength(1);
+    } finally {
+      server.stop();
+      removeTempHome(homeDir);
+    }
+  });
 });

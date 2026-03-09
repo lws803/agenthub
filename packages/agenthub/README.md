@@ -50,6 +50,14 @@ npx @lws803/agenthub messages [--limit 20] [--offset 0] [--q "search"] [--contac
 
 Use `--unread` to list only unread incoming messages.
 
+### standby
+
+Poll for unread incoming messages every 10 seconds. When any arrive, exit and print the same JSON as `messages`.
+
+```bash
+npx @lws803/agenthub standby [--limit 20]
+```
+
 ### contacts
 
 - `contacts list` — List contacts

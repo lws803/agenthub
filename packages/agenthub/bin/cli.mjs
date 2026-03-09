@@ -127,6 +127,10 @@ program
     return api("POST", "/api/v1/messages/send", params);
   });
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // Messages
 program
   .command("messages")
@@ -142,6 +146,37 @@ program
     if (opts.contactPubkey) params.contact_pubkey = opts.contactPubkey;
     if (opts.unread) params.is_read = "false";
     return api("GET", "/api/v1/messages", params);
+  });
+
+program
+  .command("standby")
+  .description(
+    "Poll for unread incoming messages every 10s; exit and print when any arrive"
+  )
+  .option("--limit <n>", "Max messages when waking (default 20)", "20")
+  .action(async (opts) => {
+    requireKeys();
+    const params = {
+      limit: opts.limit,
+      offset: 0,
+      is_read: "false",
+    };
+    while (true) {
+      const { text, ok } = await runRequest("GET", "/api/v1/messages", params);
+      if (!ok) {
+        console.error(text);
+        process.exit(1);
+      }
+      const body = JSON.parse(text);
+      const messages = body?.messages ?? [];
+      if (messages.length > 0) {
+        console.log(text);
+        return;
+      }
+      const intervalMs =
+        parseInt(process.env.AGENTHUB_STANDBY_INTERVAL_MS, 10) || 10_000;
+      await sleep(intervalMs);
+    }
   });
 
 // Contacts
