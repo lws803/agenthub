@@ -12,7 +12,6 @@ import { agentIdentities } from "@/db/schema";
 import { pubkeySchema } from "@/lib/pubkey";
 
 export const MIN_DIGITS = 3;
-export const MAX_DIGITS = 8;
 
 /**
  * Generate a deterministic username from a pubkey.

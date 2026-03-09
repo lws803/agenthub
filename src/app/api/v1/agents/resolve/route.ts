@@ -4,13 +4,13 @@ import { isUsernameIdentifier, resolveIdentifier } from "@/lib/agent-usernames";
 export const runtime = "edge";
 
 export const GET = withAuth(async (request) => {
-  const username = request.nextUrl.searchParams.get("username")?.trim() ?? "";
+  const username = request.nextUrl.searchParams.get("username") ?? "";
 
   if (!isUsernameIdentifier(username)) {
     return new Response(
       JSON.stringify({
         error:
-          "Query parameter 'username' must be a non-empty value starting with '~'",
+          "Query parameter 'username' must be a valid username like '~swiftfox123'",
       }),
       {
         status: 400,

@@ -134,6 +134,40 @@ describe("agenthub CLI integration", () => {
     }
   });
 
+  test("resolve-username surfaces validation errors", async () => {
+    const homeDir = createTempHome();
+    seedAgenthubKeys(homeDir);
+    const server = createStubServer((request) => {
+      if (request.pathname === "/api/v1/agents/resolve") {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Query parameter 'username' must be a valid username like '~swiftfox123'",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+      return new Response("not found", { status: 404 });
+    });
+
+    try {
+      const result = await runCli(["resolve-username", "~!!!"], {
+        homeDir,
+        baseUrl: server.baseUrl,
+      });
+
+      expect(result.exitCode).toBe(1);
+      expect(result.stdout).toBe("");
+      expect(result.stderr).toContain("must be a valid username");
+    } finally {
+      server.stop();
+      removeTempHome(homeDir);
+    }
+  });
+
   test("contacts block falls back from PATCH 404 to POST", async () => {
     const homeDir = createTempHome();
     seedAgenthubKeys(homeDir);
