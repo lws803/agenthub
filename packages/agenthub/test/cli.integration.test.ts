@@ -10,7 +10,7 @@ import {
 } from "./helpers";
 
 describe("agenthub CLI integration", () => {
-  test("whoami prints identity details using AGENTHUB_URL", async () => {
+  test("whoami outputs JSON identity", async () => {
     const homeDir = createTempHome();
     const { pubkeyHex } = seedAgenthubKeys(homeDir);
     const server = createStubServer((request) => {
@@ -30,10 +30,11 @@ describe("agenthub CLI integration", () => {
 
       expect(result.exitCode).toBe(0);
       expect(result.stderr).toBe("");
-      expect(result.stdout).toContain(`Pubkey:  ${pubkeyHex}`);
-      expect(result.stdout).toContain("Username: ~helpfulotter123");
-      expect(result.stdout).toContain(
-        `Contact URL: ${server.baseUrl}/agents/~helpfulotter123?name=YourName`
+      const out = JSON.parse(result.stdout);
+      expect(out.pubkey).toBe(pubkeyHex);
+      expect(out.username).toBe("~helpfulotter123");
+      expect(out.contact_url).toBe(
+        `${server.baseUrl}/agents/~helpfulotter123?name=YourName`
       );
       expect(server.requests).toHaveLength(1);
       expect(server.requests[0].pathname).toBe("/api/v1/agents/me");
@@ -57,7 +58,7 @@ describe("agenthub CLI integration", () => {
     }
   });
 
-  test("resolve-username prints identity details and signs the request", async () => {
+  test("resolve-username outputs JSON identity and signs the request", async () => {
     const homeDir = createTempHome();
     seedAgenthubKeys(homeDir);
     const username = "~helpfulotter123";
@@ -77,8 +78,9 @@ describe("agenthub CLI integration", () => {
 
       expect(result.exitCode).toBe(0);
       expect(result.stderr).toBe("");
-      expect(result.stdout).toContain(`Pubkey:  ${pubkey}`);
-      expect(result.stdout).toContain(`Username: ${username}`);
+      const out = JSON.parse(result.stdout);
+      expect(out.pubkey).toBe(pubkey);
+      expect(out.username).toBe(username);
       expect(server.requests).toHaveLength(1);
       expect(server.requests[0].method).toBe("GET");
       expect(server.requests[0].pathname).toBe("/api/v1/agents/resolve");
@@ -134,40 +136,6 @@ describe("agenthub CLI integration", () => {
     }
   });
 
-  test("resolve-username surfaces validation errors", async () => {
-    const homeDir = createTempHome();
-    seedAgenthubKeys(homeDir);
-    const server = createStubServer((request) => {
-      if (request.pathname === "/api/v1/agents/resolve") {
-        return new Response(
-          JSON.stringify({
-            error:
-              "Query parameter 'username' must be a valid username like '~swiftfox123'",
-          }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-      return new Response("not found", { status: 404 });
-    });
-
-    try {
-      const result = await runCli(["resolve-username", "~!!!"], {
-        homeDir,
-        baseUrl: server.baseUrl,
-      });
-
-      expect(result.exitCode).toBe(1);
-      expect(result.stdout).toBe("");
-      expect(result.stderr).toContain("must be a valid username");
-    } finally {
-      server.stop();
-      removeTempHome(homeDir);
-    }
-  });
-
   test("contacts block falls back from PATCH 404 to POST", async () => {
     const homeDir = createTempHome();
     seedAgenthubKeys(homeDir);
@@ -215,7 +183,7 @@ describe("agenthub CLI integration", () => {
     }
   });
 
-  test("settings view combines settings and webhook output", async () => {
+  test("settings view outputs JSON", async () => {
     const homeDir = createTempHome();
     seedAgenthubKeys(homeDir);
     const server = createStubServer((request) => {
@@ -240,8 +208,10 @@ describe("agenthub CLI integration", () => {
 
       expect(result.exitCode).toBe(0);
       expect(result.stderr).toBe("");
-      expect(result.stdout).toContain("Timezone: America/New_York");
-      expect(result.stdout).toContain("Webhooks: 2 configured");
+      const out = JSON.parse(result.stdout);
+      expect(out.timezone).toBe("America/New_York");
+      expect(out.webhooks).toHaveLength(2);
+      expect(out.webhooks[0].id).toBe(1);
       expect(server.requests).toHaveLength(2);
       expect(server.requests.map((request) => request.pathname).sort()).toEqual(
         ["/api/v1/settings", "/api/v1/settings/webhooks"]

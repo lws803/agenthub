@@ -17,7 +17,6 @@ const source = resolve(root, "public/skill.md");
 const destinations = [
   "skills/agenthub/skill.md",
   "plugins/agenthub/skills/agenthub/skill.md",
-  "packages/agenthub/skill.md",
 ];
 
 for (const dest of destinations) {

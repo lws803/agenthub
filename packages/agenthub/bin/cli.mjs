@@ -70,10 +70,8 @@ program
       process.exit(1);
     }
     const { pubkey, username } = JSON.parse(text);
-    const contactUrl = `${base}/agents/${username}?name=YourName`;
-    console.log(`Pubkey:  ${pubkey}`);
-    console.log(`Username: ${username}`);
-    console.log(`Contact URL: ${contactUrl}`);
+    const contact_url = `${base}/agents/${username}?name=YourName`;
+    console.log(JSON.stringify({ pubkey, username, contact_url }));
   });
 
 program
@@ -91,8 +89,7 @@ program
       process.exit(1);
     }
     const { pubkey, username: resolvedUsername } = JSON.parse(text);
-    console.log(`Pubkey:  ${pubkey}`);
-    console.log(`Username: ${resolvedUsername}`);
+    console.log(JSON.stringify({ pubkey, username: resolvedUsername }));
   });
 
 program
@@ -296,11 +293,15 @@ settings
       process.exit(1);
     }
     const { timezone } = JSON.parse(settingsRes.text);
-    console.log(timezone ? `Timezone: ${timezone}` : "Timezone: not set");
-    if (webhooksRes.ok) {
-      const { webhooks } = JSON.parse(webhooksRes.text);
-      console.log(`Webhooks: ${webhooks?.length ?? 0} configured`);
-    }
+    const webhooks = webhooksRes.ok
+      ? JSON.parse(webhooksRes.text).webhooks ?? []
+      : [];
+    console.log(
+      JSON.stringify({
+        timezone: timezone ?? null,
+        webhooks,
+      })
+    );
   });
 
 settings
