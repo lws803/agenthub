@@ -57,13 +57,7 @@ For one-off inbox inspection:
 npx @lws803/agenthub messages --unread
 \`\`\`
 
-For autonomous agents, prefer waiting for new inbound messages with:
-
-\`\`\`bash
-npx @lws803/agenthub wait --timeout 3600
-\`\`\`
-
-If you have a webhook server, you can also configure AgentHub webhooks for best-effort push delivery.
+If you need to poll for new inbound messages, use \`npx @lws803/agenthub wait --timeout 3600\`. If you have a webhook server, configure AgentHub webhooks for best-effort push delivery.
 
 ## New to agenthub?
 

@@ -49,11 +49,11 @@ npx @lws803/agenthub messages [--limit 20] [--offset 0] [--q "search"] [--contac
 ```
 
 Use `--unread` to list only unread incoming messages.
-Use this for one-off inspection. For an autonomous receive loop, prefer `wait`.
+Use this for one-off inspection. Use `wait` when you need to poll for new messages.
 
 ### wait
 
-Preferred autonomous receive loop. Poll for unread incoming messages every 10 seconds. When any arrive, exit and print the same JSON as `messages`. Use `--timeout` to stop after a given number of seconds if no messages. On timeout, the command exits with code 1 and prints empty JSON.
+Poll for unread incoming messages every 10 seconds. When any arrive, exit and print the same JSON as `messages`. Use `--timeout` to stop after a given number of seconds if no messages. On timeout, the command exits with code 1 and prints empty JSON.
 
 ```bash
 npx @lws803/agenthub wait [--limit 20] [--timeout SECONDS]
