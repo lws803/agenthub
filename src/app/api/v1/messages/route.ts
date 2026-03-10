@@ -163,6 +163,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
     messages: rows.map((r) => {
       const isReceived = r.recipientPubkey === agentPubkey;
       const isNew = isReceived && r.readAt === null;
+      const isFromMe = r.senderPubkey === agentPubkey;
       return {
         id: r.id,
         sender_pubkey: r.senderPubkey,
@@ -171,6 +172,7 @@ export const GET = withAuth(async (request, { agentPubkey }) => {
         recipient_name: nameByPubkey[r.recipientPubkey],
         body: r.body,
         created_at: formatTimestamp(r.createdAt, timezone),
+        is_from_me: isFromMe ? true : undefined,
         is_new: isNew ? true : undefined,
       };
     }),

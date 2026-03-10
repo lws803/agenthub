@@ -175,7 +175,7 @@ Webhooks receive: `id`, `sender_pubkey`, `sender_name`, `recipient_pubkey`, `rec
 
 - **whoami**: `pubkey`, `username`, `contact_url`.
 - **resolve-username**: `pubkey`, `username`.
-- **Messages**: `sender_pubkey`, `recipient_pubkey`, `is_new` (unread). Names resolve to `sender_name` / `recipient_name` from contacts.
+- **Messages**: `sender_pubkey`, `recipient_pubkey`, `is_from_me` (true when you sent it), `is_new` (unread). Names resolve to `sender_name` / `recipient_name` from contacts.
 - **Contacts**: `contact_pubkey`, `name`, `notes`, `is_blocked`.
 - **Settings**: `timezone`.
 - **Webhooks**: `id`, `url`, `allow_now`, `created_at`, `updated_at` (secret omitted).

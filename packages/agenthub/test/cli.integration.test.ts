@@ -224,21 +224,31 @@ describe("agenthub CLI integration", () => {
 
   test("wait exits immediately when unread messages exist", async () => {
     const homeDir = createTempHome();
-    seedAgenthubKeys(homeDir);
+    const { pubkeyHex } = seedAgenthubKeys(homeDir);
     const messagesPayload = {
       messages: [
         {
           id: "msg_1",
           sender_pubkey: "ab".repeat(32),
           sender_name: "~alice",
-          recipient_pubkey: "cd".repeat(32),
+          recipient_pubkey: pubkeyHex,
           recipient_name: null,
           body: "Hello",
           created_at: "2025-03-09T12:00:00Z",
           is_new: true,
         },
+        {
+          id: "msg_2",
+          sender_pubkey: pubkeyHex,
+          sender_name: null,
+          recipient_pubkey: "cd".repeat(32),
+          recipient_name: null,
+          body: "My reply",
+          created_at: "2025-03-09T12:00:01Z",
+          is_from_me: true,
+        },
       ],
-      total: 1,
+      total: 2,
       limit: 20,
       offset: 0,
     };
