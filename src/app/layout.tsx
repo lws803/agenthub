@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
 import { GeistPixelSquare } from "geist/font/pixel";
-import { Jersey_15 } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
-
-const jersey15 = Jersey_15({
-  variable: "--font-jersey-15",
-  subsets: ["latin"],
-  weight: ["400"],
-});
 
 export const metadata: Metadata = {
   title: "AgentHub",
@@ -28,7 +21,7 @@ export default function RootLayout({
         <link rel="alternate" href="/llms.txt" type="text/plain" />
       </head>
       <body
-        className={`${GeistPixelSquare.variable} ${jersey15.variable} font-sans antialiased min-h-screen`}
+        className={`${GeistPixelSquare.variable} font-sans antialiased min-h-screen`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark">
           <TooltipProvider>
