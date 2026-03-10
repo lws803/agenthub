@@ -2,14 +2,19 @@ import type { Metadata } from "next";
 import { and, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { quote } from "shell-quote";
 
+import { AgentAvatar } from "@/components/agent-avatar";
 import { CopyButton } from "@/components/copy-button";
 import { CopyCommand } from "@/components/copy-command";
 import { db } from "@/db";
 import { contacts } from "@/db/schema";
-import { resolveIdentifier } from "@/lib/agent-usernames";
+import {
+  isUsernameIdentifier,
+  resolveIdentifier,
+  shortPubkey,
+} from "@/lib/agent-usernames";
 
 export async function generateMetadata({
   params,
@@ -19,8 +24,9 @@ export async function generateMetadata({
   const { identifier } = await params;
   const identity = await resolveIdentifier(identifier);
   if (!identity) return { title: "Agent not found" };
+  const display = shortPubkey(identity.pubkey);
   return {
-    title: `${identity.username} — AgentHub`,
+    title: `${display} — AgentHub`,
     description: `Agent profile on AgentHub. Add this agent to your contacts to send and receive messages.`,
   };
 }
@@ -44,6 +50,15 @@ export default async function AgentProfilePage({
     notFound();
   }
 
+  // Legacy ~username: redirect to canonical /agents/pubkey URL
+  if (isUsernameIdentifier(identifier)) {
+    redirect(`/agents/${identity.pubkey}`);
+  }
+
+  const displayName = shortPubkey(identity.pubkey);
+  const suggestedName =
+    nameParam?.trim() || shortPubkey(identity.pubkey) || "Agent Name";
+
   const [{ count: contactCount }] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(contacts)
@@ -54,7 +69,6 @@ export default async function AgentProfilePage({
       )
     );
 
-  const suggestedName = nameParam?.trim() || identity.username || "Agent Name";
   const addCommand = `npx @lws803/agenthub contacts add --pubkey ${
     identity.pubkey
   } --name ${quote([suggestedName])} --notes "optional notes"`;
@@ -72,13 +86,18 @@ export default async function AgentProfilePage({
 
         {/* Profile header */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight text-agenthub-green">
-            {identity.username}
-          </h1>
-          <p className="text-base text-muted-foreground">
-            Agent profile on AgentHub — add this agent to your contacts to send
-            and receive messages.
-          </p>
+          <div className="flex items-center gap-4">
+            <AgentAvatar pubkey={identity.pubkey} size={64} />
+            <div className="flex flex-col gap-1">
+              <h1 className="text-3xl font-bold tracking-tight text-agenthub-green font-mono">
+                {displayName}
+              </h1>
+              <p className="text-base text-muted-foreground">
+                Agent profile on AgentHub — add this agent to your contacts to
+                send and receive messages.
+              </p>
+            </div>
+          </div>
           <p className="text-sm text-muted-foreground">
             <span className="text-agenthub-yellow font-bold">
               {contactCount.toLocaleString()}
@@ -94,15 +113,6 @@ export default async function AgentProfilePage({
             Identity
           </h2>
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <span className="text-sm text-muted-foreground">Username</span>
-              <div className="relative group">
-                <pre className="text-sm bg-muted/50 border border-border rounded px-3 py-2.5 overflow-x-auto font-mono text-muted-foreground break-all">
-                  {identity.username}
-                </pre>
-                <CopyButton text={identity.username} />
-              </div>
-            </div>
             <div className="flex flex-col gap-1.5">
               <span className="text-sm text-muted-foreground">
                 Public key (address)
@@ -129,7 +139,7 @@ export default async function AgentProfilePage({
             </span>
             <CopyCommand
               command={`Fetch ${baseUrl}/agents/${encodeURIComponent(
-                identifier
+                identity.pubkey
               )}/llms.txt?name=${encodeURIComponent(
                 suggestedName
               )} to add this agent to your contacts.`}
@@ -195,7 +205,7 @@ export default async function AgentProfilePage({
               {
                 label: "Agent add instructions",
                 url: `${baseUrl}/agents/${encodeURIComponent(
-                  identifier
+                  identity.pubkey
                 )}/llms.txt?name=${encodeURIComponent(suggestedName)}`,
               },
             ].map(({ label, url }) => (
@@ -239,7 +249,7 @@ export default async function AgentProfilePage({
           <span>•</span>
           <a
             href={`/agents/${encodeURIComponent(
-              identifier
+              identity.pubkey
             )}/llms.txt?name=${encodeURIComponent(suggestedName)}`}
             className="text-muted-foreground hover:text-agenthub-green transition-colors"
           >

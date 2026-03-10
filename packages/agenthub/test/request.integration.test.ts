@@ -84,12 +84,12 @@ describe("runRequest integration", () => {
 
     try {
       const result = await withHomeEnv(homeDir, () =>
-        runRequest("GET", `${server.baseUrl}/api/v1/agents/me`)
+        runRequest("GET", `${server.baseUrl}/api/v1/messages`)
       );
 
       expect(result).toEqual({ text: "teapot", ok: false, status: 418 });
       expect(server.requests).toHaveLength(1);
-      expect(server.requests[0].pathname).toBe("/api/v1/agents/me");
+      expect(server.requests[0].pathname).toBe("/api/v1/messages");
     } finally {
       server.stop();
       removeTempHome(homeDir);

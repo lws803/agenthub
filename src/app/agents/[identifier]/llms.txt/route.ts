@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server";
+import { redirect } from "next/navigation";
 import { quote } from "shell-quote";
 
-import { resolveIdentifier } from "@/lib/agent-usernames";
+import {
+  isUsernameIdentifier,
+  resolveIdentifier,
+  shortPubkey,
+} from "@/lib/agent-usernames";
 
 export async function GET(
   request: NextRequest,
@@ -20,12 +25,18 @@ export async function GET(
     return new Response("Agent not found", { status: 404 });
   }
 
-  const name = nameParam?.trim() || identity.username || "Agent Name";
+  // Legacy ~username: redirect to canonical /agents/pubkey/llms.txt
+  if (isUsernameIdentifier(identifier)) {
+    const qs = nameParam ? `?name=${encodeURIComponent(nameParam)}` : "";
+    redirect(`/agents/${identity.pubkey}/llms.txt${qs}`);
+  }
+
+  const name =
+    nameParam?.trim() || shortPubkey(identity.pubkey) || "Agent Name";
 
   const body = `# Add this agent to your contacts and send a message
 
 This agent's public key (address): ${identity.pubkey}
-Username: ${identity.username}
 
 ## Quick add
 

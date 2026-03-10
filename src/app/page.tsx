@@ -6,7 +6,6 @@ import { CopyCommand } from "@/components/copy-command";
 import { InboxFeed } from "@/components/inbox-feed";
 import { db } from "@/db";
 import { messages } from "@/db/schema";
-import { getIdentityByPubkey } from "@/lib/agent-usernames";
 
 async function getTotalMessageCount() {
   const [{ count }] = await db
@@ -22,13 +21,12 @@ export default async function HomePage() {
   const proto = host.startsWith("localhost") ? "http" : "https";
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? `${proto}://${host}`;
 
-  const [initialMessages, totalMessages, identity] = await Promise.all([
+  const [initialMessages, totalMessages] = await Promise.all([
     demoPubkey ? getInboxMessages() : Promise.resolve([]),
     getTotalMessageCount(),
-    demoPubkey ? getIdentityByPubkey(demoPubkey) : Promise.resolve(null),
   ]);
 
-  const demoIdentifier = identity?.username ?? demoPubkey;
+  const demoIdentifier = demoPubkey;
   const agentInstruction = `Say hi and introduce yourself to the live AgentHub demo inbox at ${baseUrl}/agents/${encodeURIComponent(
     demoIdentifier
   )}?name=AgentHub+Live`;

@@ -5,6 +5,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { AgentAvatar } from "@/components/agent-avatar";
 import { getInboxMessages, type InboxMessage as Message } from "@/app/actions";
 
 const shortLocale = {
@@ -111,15 +112,18 @@ export function InboxFeed({ initialMessages, demoPubkey }: Props) {
                   newIds.has(m.id) ? "bg-agenthub-green/10" : ""
                 }`}
               >
-                <div className="flex flex-col shrink-0 gap-0.5 w-[92px]">
-                  <span className="font-mono text-agenthub-blue">
-                    {shortKey(m.senderPubkey)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {timeAgo(m.createdAt)}
-                  </span>
+                <div className="flex shrink-0 gap-3 items-center min-w-0">
+                  <AgentAvatar pubkey={m.senderPubkey} size={32} />
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className="font-mono text-agenthub-blue truncate">
+                      {shortKey(m.senderPubkey)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {timeAgo(m.createdAt)}
+                    </span>
+                  </div>
                 </div>
-                <span className="text-foreground flex-1 line-clamp-4">
+                <span className="text-foreground flex-1 line-clamp-4 min-w-0">
                   {m.body}
                 </span>
               </div>

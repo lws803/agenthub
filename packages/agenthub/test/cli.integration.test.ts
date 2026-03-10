@@ -10,128 +10,16 @@ import {
 } from "./helpers";
 
 describe("agenthub CLI integration", () => {
-  test("whoami outputs JSON identity", async () => {
-    const homeDir = createTempHome();
-    const { pubkeyHex } = seedAgenthubKeys(homeDir);
-    const server = createStubServer((request) => {
-      if (request.pathname === "/api/v1/agents/me") {
-        return new Response(
-          JSON.stringify({ pubkey: pubkeyHex, username: "~helpfulotter123" })
-        );
-      }
-      return new Response("not found", { status: 404 });
-    });
-
-    try {
-      const result = await runCli(["whoami"], {
-        homeDir,
-        baseUrl: server.baseUrl,
-      });
-
-      expect(result.exitCode).toBe(0);
-      expect(result.stderr).toBe("");
-      const out = JSON.parse(result.stdout);
-      expect(out.pubkey).toBe(pubkeyHex);
-      expect(out.username).toBe("~helpfulotter123");
-      expect(out.contact_url).toBe(
-        `${server.baseUrl}/agents/~helpfulotter123?name=YourName`
-      );
-      expect(server.requests).toHaveLength(1);
-      expect(server.requests[0].pathname).toBe("/api/v1/agents/me");
-    } finally {
-      server.stop();
-      removeTempHome(homeDir);
-    }
-  });
-
   test("authenticated commands fail cleanly when keys are missing", async () => {
     const homeDir = createTempHome();
 
     try {
-      const result = await runCli(["whoami"], { homeDir });
+      const result = await runCli(["messages"], { homeDir });
 
       expect(result.exitCode).toBe(1);
       expect(result.stdout).toBe("");
       expect(result.stderr).toContain("No keypair found");
     } finally {
-      removeTempHome(homeDir);
-    }
-  });
-
-  test("resolve-username outputs JSON identity and signs the request", async () => {
-    const homeDir = createTempHome();
-    seedAgenthubKeys(homeDir);
-    const username = "~helpfulotter123";
-    const pubkey = "ab".repeat(32);
-    const server = createStubServer((request) => {
-      if (request.pathname === "/api/v1/agents/resolve") {
-        return new Response(JSON.stringify({ pubkey, username }));
-      }
-      return new Response("not found", { status: 404 });
-    });
-
-    try {
-      const result = await runCli(["resolve-username", username], {
-        homeDir,
-        baseUrl: server.baseUrl,
-      });
-
-      expect(result.exitCode).toBe(0);
-      expect(result.stderr).toBe("");
-      const out = JSON.parse(result.stdout);
-      expect(out.pubkey).toBe(pubkey);
-      expect(out.username).toBe(username);
-      expect(server.requests).toHaveLength(1);
-      expect(server.requests[0].method).toBe("GET");
-      expect(server.requests[0].pathname).toBe("/api/v1/agents/resolve");
-      expect(server.requests[0].query).toEqual({ username });
-      expect(await verifyCapturedSignature(server.requests[0])).toBe(true);
-    } finally {
-      server.stop();
-      removeTempHome(homeDir);
-    }
-  });
-
-  test("resolve-username fails cleanly when keys are missing", async () => {
-    const homeDir = createTempHome();
-
-    try {
-      const result = await runCli(["resolve-username", "~helpfulotter123"], {
-        homeDir,
-      });
-
-      expect(result.exitCode).toBe(1);
-      expect(result.stdout).toBe("");
-      expect(result.stderr).toContain("No keypair found");
-    } finally {
-      removeTempHome(homeDir);
-    }
-  });
-
-  test("resolve-username surfaces API errors", async () => {
-    const homeDir = createTempHome();
-    seedAgenthubKeys(homeDir);
-    const server = createStubServer((request) => {
-      if (request.pathname === "/api/v1/agents/resolve") {
-        return new Response(JSON.stringify({ error: "Username not found" }), {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      return new Response("not found", { status: 404 });
-    });
-
-    try {
-      const result = await runCli(["resolve-username", "~missingagent999"], {
-        homeDir,
-        baseUrl: server.baseUrl,
-      });
-
-      expect(result.exitCode).toBe(1);
-      expect(result.stdout).toBe("");
-      expect(result.stderr).toContain("Username not found");
-    } finally {
-      server.stop();
       removeTempHome(homeDir);
     }
   });

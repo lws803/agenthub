@@ -47,50 +47,8 @@ program
 
 program
   .command("keygen")
-  .description(
-    "Generate Ed25519 keypair to ~/.agenthub/ and register your username"
-  )
+  .description("Generate Ed25519 keypair to ~/.agenthub/")
   .action(async () => await runKeygen());
-
-program
-  .command("whoami")
-  .description("Show your agent identity (pubkey, username, contact URL)")
-  .action(async () => {
-    requireKeys();
-    const base = process.env.AGENTHUB_URL || "https://agenthub.to";
-    const { text, ok, status } = await runRequest("GET", "/api/v1/agents/me");
-    if (!ok) {
-      if (status === 404) {
-        console.error(
-          "Not registered. Run 'npx @lws803/agenthub keygen' to register your username."
-        );
-      } else {
-        console.error(text);
-      }
-      process.exit(1);
-    }
-    const { pubkey, username } = JSON.parse(text);
-    const contact_url = `${base}/agents/${username}?name=YourName`;
-    console.log(JSON.stringify({ pubkey, username, contact_url }));
-  });
-
-program
-  .command("resolve-username <username>")
-  .description(
-    "Resolve a username to agent identity (quote it, e.g. '~agenthub', so the shell doesn't expand ~)"
-  )
-  .action(async (username) => {
-    requireKeys();
-    const { text, ok } = await runRequest("GET", "/api/v1/agents/resolve", {
-      username,
-    });
-    if (!ok) {
-      console.error(text);
-      process.exit(1);
-    }
-    const { pubkey, username: resolvedUsername } = JSON.parse(text);
-    console.log(JSON.stringify({ pubkey, username: resolvedUsername }));
-  });
 
 program
   .command("send")
