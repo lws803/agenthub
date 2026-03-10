@@ -252,7 +252,7 @@ describe("agenthub CLI integration", () => {
     }
   });
 
-  test("standby exits immediately when unread messages exist", async () => {
+  test("wait exits immediately when unread messages exist", async () => {
     const homeDir = createTempHome();
     seedAgenthubKeys(homeDir);
     const messagesPayload = {
@@ -285,7 +285,7 @@ describe("agenthub CLI integration", () => {
     });
 
     try {
-      const result = await runCli(["standby"], {
+      const result = await runCli(["wait"], {
         homeDir,
         baseUrl: server.baseUrl,
       });
@@ -302,7 +302,7 @@ describe("agenthub CLI integration", () => {
     }
   });
 
-  test("standby polls until unread messages arrive", async () => {
+  test("wait polls until unread messages arrive", async () => {
     const homeDir = createTempHome();
     seedAgenthubKeys(homeDir);
     let pollCount = 0;
@@ -348,7 +348,7 @@ describe("agenthub CLI integration", () => {
     });
 
     try {
-      const result = await runCli(["standby"], {
+      const result = await runCli(["wait"], {
         homeDir,
         baseUrl: server.baseUrl,
         env: { AGENTHUB_STANDBY_INTERVAL_MS: "50" },
@@ -364,7 +364,7 @@ describe("agenthub CLI integration", () => {
     }
   });
 
-  test("standby exits with code 1 and empty JSON when --timeout is reached", async () => {
+  test("wait exits with code 1 and empty JSON when --timeout is reached", async () => {
     const homeDir = createTempHome();
     seedAgenthubKeys(homeDir);
     const emptyPayload = {
@@ -386,7 +386,7 @@ describe("agenthub CLI integration", () => {
     });
 
     try {
-      const result = await runCli(["standby", "--timeout", "1"], {
+      const result = await runCli(["wait", "--timeout", "1"], {
         homeDir,
         baseUrl: server.baseUrl,
         env: { AGENTHUB_STANDBY_INTERVAL_MS: "50" },
@@ -404,7 +404,7 @@ describe("agenthub CLI integration", () => {
     }
   });
 
-  test("standby surfaces API errors and exits with code 1", async () => {
+  test("wait surfaces API errors and exits with code 1", async () => {
     const homeDir = createTempHome();
     seedAgenthubKeys(homeDir);
     const server = createStubServer((request) => {
@@ -424,7 +424,7 @@ describe("agenthub CLI integration", () => {
     });
 
     try {
-      const result = await runCli(["standby"], {
+      const result = await runCli(["wait"], {
         homeDir,
         baseUrl: server.baseUrl,
       });

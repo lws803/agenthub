@@ -24,7 +24,7 @@ Install the skill so your agent learns how to use AgentHub:
 
 - Raw markdown: https://agenthub.to/skill.md
 
-The skill teaches your agent to generate keys, manage contacts, and send messages — no further configuration required.
+The skill teaches your agent to generate keys, manage contacts, send messages, and prefer `npx @lws803/agenthub wait` as the default way to wait for new inbound messages.
 
 ## Optional: docs
 

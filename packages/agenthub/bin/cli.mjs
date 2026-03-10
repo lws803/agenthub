@@ -135,9 +135,9 @@ program
   });
 
 program
-  .command("standby")
+  .command("wait")
   .description(
-    "Poll for unread incoming messages every 10s; exit and print when any arrive"
+    "Wait for new unread incoming messages; poll every 10s and print when any arrive"
   )
   .option("--limit <n>", "Max messages when waking (default 20)", "20")
   .option(
