@@ -1,9 +1,3 @@
-import {
-  uniqueNamesGenerator,
-  adjectives,
-  animals,
-  NumberDictionary,
-} from "unique-names-generator";
 import { cache } from "react";
 import { eq } from "drizzle-orm";
 
@@ -11,53 +5,24 @@ import { db } from "@/db";
 import { agentIdentities } from "@/db/schema";
 import { pubkeySchema } from "@/lib/pubkey";
 
-export const MIN_DIGITS = 3;
-export const MAX_DIGITS = 8;
-
-/**
- * Generate a deterministic username from a pubkey.
- * Format: ~adjective + animal + N-digit suffix.
- * digitCount: number of digits in the suffix (3, 4, 5, ...) for collision fallback.
- */
-export function generateUsernameCandidate(
-  pubkey: string,
-  digitCount: number = MIN_DIGITS
-): string {
-  const min = Math.pow(10, digitCount - 1);
-  const max = Math.pow(10, digitCount) - 1;
-  const numberDict = NumberDictionary.generate({ min, max });
-
-  const seed =
-    digitCount === MIN_DIGITS ? pubkey : `${pubkey}-${digitCount}digit`;
-
-  const base = uniqueNamesGenerator({
-    dictionaries: [adjectives, animals, numberDict],
-    length: 3,
-    separator: "",
-    style: "lowerCase",
-    seed,
-  });
-
-  return `~${base}`;
-}
-
 export function isUsernameIdentifier(identifier: string): boolean {
   const trimmed = identifier.trim();
   return trimmed.startsWith("~") && trimmed.length > 1;
 }
 
+export function shortPubkey(pubkey: string): string {
+  if (!pubkey) return pubkey;
+  return pubkey.slice(0, 8);
+}
+
 /**
- * Resolve an identifier (pubkey hex or ~username) to the identity row.
- * Returns null if not found.
- * Wrapped with React cache() to dedupe identical calls within a single request.
+ * Resolve an identifier to pubkey. Used for:
+ * - /agents/~username → lookup in agent_identities, return pubkey (for redirect)
+ * - /agents/pubkey → validate and return pubkey (no DB)
+ * Returns null if not found (username) or invalid.
  */
 export const resolveIdentifier = cache(
-  async (
-    identifier: string
-  ): Promise<{
-    pubkey: string;
-    username: string;
-  } | null> => {
+  async (identifier: string): Promise<{ pubkey: string } | null> => {
     const trimmed = identifier.trim();
     if (!trimmed) return null;
 
@@ -67,38 +32,17 @@ export const resolveIdentifier = cache(
 
     if (!isPubkey && !isUsername) return null;
 
+    if (isPubkey) {
+      return { pubkey: parsedPubkey.data.toLowerCase() };
+    }
+
+    // ~username: lookup in agent_identities for redirect
     const [row] = await db
-      .select({
-        pubkey: agentIdentities.pubkey,
-        username: agentIdentities.username,
-      })
+      .select({ pubkey: agentIdentities.pubkey })
       .from(agentIdentities)
-      .where(
-        isPubkey
-          ? eq(agentIdentities.pubkey, parsedPubkey.data.toLowerCase())
-          : eq(agentIdentities.username, trimmed.toLowerCase())
-      )
+      .where(eq(agentIdentities.username, trimmed.toLowerCase()))
       .limit(1);
 
-    return row ? { pubkey: row.pubkey, username: row.username } : null;
+    return row ? { pubkey: row.pubkey } : null;
   }
 );
-
-/**
- * Fetch identity by pubkey. Returns null if not registered.
- */
-export async function getIdentityByPubkey(pubkey: string): Promise<{
-  pubkey: string;
-  username: string;
-} | null> {
-  const [row] = await db
-    .select({
-      pubkey: agentIdentities.pubkey,
-      username: agentIdentities.username,
-    })
-    .from(agentIdentities)
-    .where(eq(agentIdentities.pubkey, pubkey.toLowerCase()))
-    .limit(1);
-
-  return row ? { pubkey: row.pubkey, username: row.username } : null;
-}
