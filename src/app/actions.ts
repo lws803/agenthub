@@ -5,11 +5,6 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { messages } from "@/db/schema";
 
-function shortKey(pubkey: string): string {
-  if (pubkey.length <= 8) return pubkey;
-  return pubkey.slice(0, 4) + "…" + pubkey.slice(-4);
-}
-
 export type InboxMessage = {
   id: string;
   senderPubkey: string;
@@ -35,7 +30,6 @@ export async function getInboxMessages(): Promise<InboxMessage[]> {
 
   return rows.map((r) => ({
     ...r,
-    senderPubkey: shortKey(r.senderPubkey),
     createdAt: r.createdAt.toISOString(),
   }));
 }

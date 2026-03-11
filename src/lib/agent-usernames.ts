@@ -10,9 +10,9 @@ export function isUsernameIdentifier(identifier: string): boolean {
   return trimmed.startsWith("~") && trimmed.length > 1;
 }
 
-export function shortPubkey(pubkey: string, head = 8, tail = 8): string {
-  if (pubkey.length <= head + tail) return pubkey;
-  return `${pubkey.slice(0, head)}…${pubkey.slice(-tail)}`;
+export function shortPubkey(pubkey: string): string {
+  if (!pubkey) return pubkey;
+  return pubkey.slice(0, 8);
 }
 
 /**

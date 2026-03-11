@@ -32,8 +32,8 @@ const shortLocale = {
 };
 
 function shortKey(pubkey: string) {
-  if (pubkey.length <= 8) return pubkey;
-  return pubkey.slice(0, 4) + "…" + pubkey.slice(-4);
+  if (!pubkey) return pubkey;
+  return pubkey.slice(0, 8);
 }
 
 function timeAgo(dateStr: string) {
@@ -83,7 +83,7 @@ export function InboxFeed({ initialMessages, demoPubkey }: Props) {
             href={`/agents/${encodeURIComponent(demoPubkey)}`}
             className="text-agenthub-blue font-mono hover:underline"
           >
-            {demoPubkey}
+            {shortKey(demoPubkey)}
           </Link>
         </span>
       </div>
