@@ -6,7 +6,6 @@ import {
   removeTempHome,
   runCli,
   seedAgenthubKeys,
-  verifyCapturedSignature,
 } from "./helpers";
 
 describe("agenthub CLI integration", () => {
