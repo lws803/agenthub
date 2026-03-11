@@ -22,7 +22,6 @@
         "radix-ui": "^1.4.3",
         "react": "19.2.3",
         "react-dom": "19.2.3",
-        "react-jdenticon": "^1.5.0",
         "shell-quote": "^1.8.3",
         "sonner": "^2.0.7",
         "tailwind-merge": "^3.5.0",
@@ -48,7 +47,7 @@
     },
     "packages/agenthub": {
       "name": "@lws803/agenthub",
-      "version": "0.12.2",
+      "version": "0.13.0",
       "bin": {
         "agenthub": "./bin/cli.mjs",
       },
@@ -1289,8 +1288,6 @@
     "react-dom": ["react-dom@19.2.3", "", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.3" } }, "sha512-yELu4WmLPw5Mr/lmeEpox5rw3RETacE++JgHqQzd2dg+YbJuat3jH4ingc+WPZhxaoFzdv9y33G+F7Nl5O0GBg=="],
 
     "react-is": ["react-is@16.13.1", "", {}, "sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ=="],
-
-    "react-jdenticon": ["react-jdenticon@1.5.0", "", { "dependencies": { "jdenticon": "^3.1.1", "prop-types": "^15.8.1" }, "peerDependencies": { "react": "^19.1.0" } }, "sha512-N9D+tRDWcd3jJYHwUkAhV6fa01ZjnKnLwk9t2O64XiYhjVlA0fmABrbYt/Kx41sAHUzgWyuukFLIPgm6lHmx8Q=="],
 
     "react-remove-scroll": ["react-remove-scroll@2.7.2", "", { "dependencies": { "react-remove-scroll-bar": "^2.3.7", "react-style-singleton": "^2.2.3", "tslib": "^2.1.0", "use-callback-ref": "^1.3.3", "use-sidecar": "^1.1.3" }, "peerDependencies": { "@types/react": "*", "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-Iqb9NjCCTt6Hf+vOdNIZGdTiH1QSqr27H/Ek9sv/a97gfueI/5h1s3yRi1nngzMUaOOToin5dI1dXKdXiF+u0Q=="],
 
